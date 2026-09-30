@@ -13,3 +13,5 @@ Append-only decision record. The "why" lives here; the full change history lives
 - [2026-09-30] D-09 — gunicorn/WSGI for production; ASGI present but unused — because the HTMX UI is server-rendered request/response
 - [2026-09-30] D-10 — Tailwind CSS v4 via npm CLI with design tokens declared in @theme — because the HLD mandates Tailwind and tokens centralize the design guidelines
 - [2026-09-30] D-11 — Scheduled sync via a management command plus external cron/CronJob, not Celery or django-q2 — because V1 avoids unnecessary infrastructure
+- [2026-09-30] D-12 — Project management uses Django's built-in admin rather than a custom admin UI — because it is secure and fast, while public wiki pages stay custom and read-only
+- [2026-09-30] D-13 — Public project URLs are slug-based and repo URLs accept https/ssh/scp-like Git forms — because ssh remotes are common and friendly URLs suit documentation

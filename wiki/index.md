@@ -8,6 +8,7 @@
 
 ## Epics
 - [epics/epic-01-foundation](pages/epics/epic-01-foundation.md) — E1 — bootable/deployable Django monolith: env-driven config, SQLite/Postgres, /data persistence, health, Docker, k8s, CI.
+- [epics/epic-02-admin-and-projects](pages/epics/epic-02-admin-and-projects.md) — E2 — admin auth and the Project model: CRUD via Django admin, public read-only project list/overview.
 
 ## Specs
 - [specs/pullini-v1-hld](pages/specs/pullini-v1-hld.md) — V1 high-level design for Pullini, a read-only Git-backed wiki browser (Python/Django monolith).

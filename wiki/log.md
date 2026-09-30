@@ -2,3 +2,4 @@
 ## [2026-09-30] spec | Pullini V1 — High-Level Design
 ## [2026-09-30] ticket | E1 — Foundation & Deployment implemented
 ## [2026-09-30] update | build-deploy.md and project-overview.md refreshed with real commands/structure
+## [2026-09-30] ticket | E2 — Admin & Projects implemented
