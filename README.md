@@ -8,10 +8,16 @@ Wiki content is never edited in Pullini.
 
 ## Status
 
-Early V1 — foundation only. The application currently provides a bootable Django
-monolith with configuration, persistence, deployment manifests and a health
-endpoint. Projects, Git synchronization, wiki generation and search land in later
-epics.
+V1 feature-complete. Pullini provides:
+
+- **Projects** — Git repository, branch, docs folder and update interval managed
+  in the Django admin; public read-only list and detail pages.
+- **Git synchronization** — shallow per-project clones, scheduled and manual
+  refresh, per-project sync state, resilient to failures.
+- **Wiki generation** — Markdown in the configured docs folder rendered as
+  read-only pages with tree and recent navigation.
+- **Search** — project-scoped and global search with contextual snippets, backed
+  by PostgreSQL full-text search or portable ORM matching on SQLite.
 
 See the design: [`wiki/pages/specs/pullini-v1-hld.md`](wiki/pages/specs/pullini-v1-hld.md).
 
@@ -34,7 +40,21 @@ uv run python manage.py createsuperuser
 uv run python manage.py runserver
 ```
 
-Then open http://localhost:8000 — status is at `/healthz`.
+Then open http://localhost:8000 — status is at `/healthz`, and projects are added
+in the Django admin at `/admin/`.
+
+## Syncing and generating pages
+
+Wiki pages are regenerated automatically when a sync detects a changed commit.
+To sync or rebuild manually:
+
+```bash
+uv run python manage.py sync_projects            # sync projects whose interval has elapsed
+uv run python manage.py sync_projects --force    # sync all enabled projects now
+uv run python manage.py sync_projects --project <slug>
+uv run python manage.py generate_pages           # regenerate pages from local clones
+uv run python manage.py generate_pages --project <slug>
+```
 
 ## Tests and lint
 
@@ -64,8 +84,7 @@ host port with `PULLINI_PORT` (default `8000`) if it is already in use:
 PULLINI_PORT=8080 docker compose up --build
 ```
 
-For PostgreSQL, set
-`DATABASE_URL` in `.env` and start the `postgres` profile:
+For PostgreSQL, set `DATABASE_URL` in `.env` and start the `postgres` profile:
 
 ```bash
 docker compose --profile postgres up --build
