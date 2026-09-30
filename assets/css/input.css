@@ -4,6 +4,18 @@
 @source "../../templates";
 @source "../../src/pullini";
 
+/* Class-based dark mode: <html class="dark">. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Reserve the scrollbar gutter so short pages (no scrollbar) and long pages
+ * (scrollbar) have the same viewport width — otherwise the centered logo and
+ * content shift horizontally when navigating between pages.
+ */
+html {
+  scrollbar-gutter: stable;
+}
+
 /*
  * Pullini design tokens, derived from the design guidelines.
  * Navy + White are dominant; blue/red/orange are functional accents only.
@@ -12,13 +24,35 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
 
+  --color-surface: #ffffff; /* page background */
+  --color-panel: #ffffff; /* cards and panels */
   --color-navy: #14213d;
   --color-soft: #f5f7fa;
   --color-line: #e2e8f0;
+  --color-code-bg: #14213d;
   --color-git: #ff3b30;
   --color-brand: #1677ff;
   --color-accent: #ff9f1c;
   --color-ink: #475569;
+}
+
+/*
+ * Dark theme: override the same tokens. Unlayered, so it wins over the
+ * variables Tailwind emits into @layer theme. Every component that uses these
+ * tokens (bg-surface, bg-panel, text-navy, border-line, ...) adapts for free.
+ */
+.dark {
+  color-scheme: dark;
+  --color-surface: #0b111c;
+  --color-panel: #121a2b;
+  --color-soft: #1a2438;
+  --color-line: #2a3650;
+  --color-code-bg: #05080f;
+  --color-navy: #e7ecf6;
+  --color-git: #ff5a50;
+  --color-brand: #4c9bff;
+  --color-accent: #ffb04d;
+  --color-ink: #a7b2c6;
 }
 
 /*
@@ -79,12 +113,40 @@
   font-size: 0.875em;
 }
 .wiki-content pre {
-  background: var(--color-navy);
+  position: relative;
+  background: var(--color-code-bg);
   color: #fff;
   border-radius: 0.5rem;
   padding: 1rem;
   overflow-x: auto;
   margin: 1rem 0;
+}
+.copy-code-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  font-size: 0.6875rem;
+  line-height: 1;
+  padding: 0.35rem 0.55rem;
+  border-radius: 0.375rem;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  opacity: 0.7;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease;
+}
+.copy-code-button:hover,
+.copy-code-button:focus {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.22);
+}
+.copy-code-button.is-copied {
+  background: #16a34a;
+  border-color: #16a34a;
+  opacity: 1;
 }
 .wiki-content pre code {
   background: transparent;

@@ -10,18 +10,45 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}" />
+    <link rel="apple-touch-icon" href="{% static 'img/logo.png' %}" />
+    <script>
+      // Set the theme before paint to avoid a flash of the wrong theme.
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          var dark = stored
+            ? stored === "dark"
+            : window.matchMedia("(prefers-color-scheme: dark)").matches;
+          if (dark) document.documentElement.classList.add("dark");
+        } catch (error) {
+          /* ignore */
+        }
+      })();
+    </script>
     <link rel="stylesheet" href="{% static 'css/app.css' %}" />
   </head>
-  <body class="h-full bg-white font-sans text-ink antialiased">
+  <body class="flex min-h-screen flex-col bg-surface font-sans text-ink antialiased">
     <header class="border-b border-line">
       <div class="mx-auto flex max-w-6xl items-center gap-6 px-6 py-4">
-        <a href="{% url 'home' %}" class="flex items-center gap-2">
-          <span class="grid size-8 place-items-center rounded-lg bg-navy text-sm font-bold text-white"
-            >P</span
-          >
-          <span class="text-lg font-semibold tracking-tight text-navy">Pullini</span>
+        <a href="{% url 'home' %}" class="flex items-center">
+          <img
+            src="{% static 'img/logo-wordmark.png' %}"
+            alt="Pullini"
+            class="h-[45px] w-auto dark:hidden"
+          />
+          <img
+            src="{% static 'img/logo-wordmark-dark.png' %}"
+            alt="Pullini"
+            class="hidden h-[45px] w-auto dark:block"
+          />
         </a>
-        <span class="flex items-center gap-2 rounded-md bg-soft px-3 py-1.5 text-sm text-ink/70">
+        <a
+          href="{% url 'projects:list' %}"
+          class="text-sm text-navy/80 transition-colors hover:text-brand"
+          >Browse projects</a
+        >
+        <span class="hidden w-80 items-center gap-2 rounded-md bg-soft px-3 py-1.5 text-sm text-ink/70 sm:flex">
           <svg
             class="size-4"
             viewBox="0 0 24 24"
@@ -38,6 +65,40 @@
           Search
         </span>
         <nav class="ml-auto flex items-center gap-4 text-sm">
+          <button
+            type="button"
+            data-theme-toggle
+            aria-label="Toggle dark mode"
+            class="grid size-9 place-items-center rounded-md text-navy/80 transition-colors hover:bg-soft"
+          >
+            <svg
+              class="size-4 dark:hidden"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+            <svg
+              class="hidden size-4 dark:block"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path
+                d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
+              />
+            </svg>
+          </button>
           <a href="/admin/" class="text-navy/80 transition-colors hover:text-brand">Settings</a>
         </nav>
       </div>
@@ -46,13 +107,17 @@
     <div class="mx-auto max-w-6xl px-6 pt-6">
       {% for message in messages %}
       <div
-        class="mb-2 rounded-lg border px-4 py-2 text-sm {% if message.tags == 'error' %}border-git/40 bg-git/5 text-git{% elif message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-700{% else %}border-line bg-soft text-ink{% endif %}"
+        class="mb-2 rounded-lg border px-4 py-2 text-sm {% if message.tags == 'error' %}border-git/40 bg-git/5 text-git{% elif message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300{% else %}border-line bg-soft text-ink{% endif %}"
       >
         {{ message }}
       </div>
       {% endfor %}
     </div>
     {% endif %}
-    <main class="mx-auto max-w-6xl px-6 py-10">{% block content %}{% endblock %}</main>
+    <main class="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 py-10">
+      {% block content %}{% endblock %}
+    </main>
+    <script src="{% static 'js/theme.js' %}" defer></script>
+    <script src="{% static 'js/copy-code.js' %}" defer></script>
   </body>
 </html>

@@ -31,6 +31,13 @@ def test_home_renders_design_shell(client):
     assert b"css/app.css" in response.content
 
 
+def test_home_has_theme_toggle(client):
+    response = client.get(reverse("home"))
+
+    assert b"data-theme-toggle" in response.content
+    assert b"js/theme.js" in response.content
+
+
 def test_database_check_isolates_errors(monkeypatch):
     class BoomCursor:
         def __enter__(self):
