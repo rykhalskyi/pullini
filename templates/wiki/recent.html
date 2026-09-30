@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Recently updated · {{ project.name }}{% endblock %}
+{% block content %}
+{% include "wiki/_nav.html" with active="recent" %}
+
+{% if pages %}
+<ul class="mt-8 divide-y divide-line rounded-xl border border-line bg-white">
+  {% for page in pages %}
+  <li>
+    <a
+      href="{% url 'wiki:page' project.slug page.url_path %}"
+      class="flex items-center justify-between gap-4 px-5 py-3 transition-colors hover:bg-soft"
+    >
+      <span class="font-medium text-navy">{{ page.title }}</span>
+      <span class="text-xs text-ink/50">{{ page.updated_at|date:"Y-m-d H:i" }} UTC</span>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="mt-8 text-sm text-ink/70">No pages yet.</p>
+{% endif %}
+{% endblock %}

@@ -9,6 +9,7 @@ failed sync records an error and leaves the last good clone in place.
 from __future__ import annotations
 
 import fcntl
+import logging
 import os
 import shutil
 from collections.abc import Iterator
@@ -21,6 +22,8 @@ from django.utils import timezone
 
 from pullini.projects import git
 from pullini.projects.models import Project, ProjectSyncState, SyncStatus
+
+logger = logging.getLogger(__name__)
 
 
 class SyncInProgress(Exception):
@@ -83,6 +86,8 @@ def sync_project(project: Project, *, force: bool = False) -> ProjectSyncState:
     if not force and not is_due(project, state):
         return state
 
+    previous_commit = state.last_commit
+
     try:
         with repository_lock(project):
             state.status = SyncStatus.RUNNING
@@ -96,6 +101,8 @@ def sync_project(project: Project, *, force: bool = False) -> ProjectSyncState:
             state.status = SyncStatus.OK
             state.last_error = ""
             state.save()
+        if force or commit != previous_commit:
+            _regenerate_pages(project)
     except SyncInProgress:
         # Leave the previous state untouched; another run will report it.
         pass
@@ -110,3 +117,13 @@ def sync_project(project: Project, *, force: bool = False) -> ProjectSyncState:
 def sync_due_projects(*, force: bool = False) -> list[ProjectSyncState]:
     """Sync every enabled project that is due (or all of them when forced)."""
     return [sync_project(project, force=force) for project in Project.objects.filter(enabled=True)]
+
+
+def _regenerate_pages(project: Project) -> None:
+    """Rebuild wiki pages after a change; never let it fail the sync itself."""
+    from pullini.wiki.generation import generate_pages
+
+    try:
+        generate_pages(project)
+    except Exception:  # noqa: BLE001 - a generation failure must not break sync
+        logger.exception("wiki page generation failed for %s", project.slug)

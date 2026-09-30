@@ -5,3 +5,4 @@
 ## [2026-09-30] ticket | E2 — Admin & Projects implemented
 ## [2026-09-30] ticket | E3 — Git Synchronization implemented
 ## [2026-09-30] update | E3: added staff-only Refresh now buttons (project page + admin change form) and POST refresh endpoint
+## [2026-09-30] ticket | E4 — Wiki Generation implemented

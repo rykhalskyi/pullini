@@ -37,7 +37,11 @@ def project_detail(request: HttpRequest, slug: str) -> HttpResponse:
     return render(
         request,
         "projects/project_detail.html",
-        {"project": project, "sync_state": sync_state},
+        {
+            "project": project,
+            "sync_state": sync_state,
+            "page_count": project.pages.count(),
+        },
     )
 
 

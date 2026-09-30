@@ -18,3 +18,6 @@ Append-only decision record. The "why" lives here; the full change history lives
 - [2026-09-30] D-14 — Git access uses the CLI via subprocess rather than GitPython/pygit2 — because Pullini only needs a shallow working tree and the stdlib keeps dependencies minimal
 - [2026-09-30] D-15 — The scheduler runs as a loop in a secondary container/sidecar rather than a CronJob — because the clone lives on a ReadWriteOnce volume that only one pod can mount, and the sidecar shares the pod volume
 - [2026-09-30] D-16 — Each project's sync is serialized with a per-project flock file — because manual refresh and the scheduled run can execute concurrently
+- [2026-09-30] D-17 — Markdown rendering uses Python-Markdown with core extensions and hand-written content styles, not the Tailwind typography plugin — because it keeps dependencies lean and preserves the navy/white reading aesthetic
+- [2026-09-30] D-18 — Pages are stored in the database as derived metadata plus rendered HTML and are fully regenerable from the clone; Git stays canonical and regeneration is keyed on a content hash
+- [2026-09-30] D-19 — Page URLs use the source path without extension under /projects/<slug>/wiki/, reserving index/ recent/ assets/, and relative .md links and asset src are rewritten to internal routes

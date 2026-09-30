@@ -71,9 +71,24 @@
 
 <section class="mt-10">
   <h2 class="text-sm font-semibold uppercase tracking-wide text-ink/60">Wiki</h2>
-  <div class="mt-4 rounded-xl border border-dashed border-line bg-soft/50 p-8 text-center text-sm text-ink/70">
-    Documentation pages will appear here once synchronization is enabled.
+  {% if page_count %}
+  <div class="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-white p-5">
+    <p class="text-sm text-ink">
+      <span class="font-medium text-navy">{{ page_count }}</span> page{{ page_count|pluralize }} generated
+      from <span class="font-mono">{{ project.docs_folder }}/</span>.
+    </p>
+    <a
+      href="{% url 'wiki:tree' project.slug %}"
+      class="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90"
+      >Browse wiki</a
+    >
   </div>
+  {% else %}
+  <div class="mt-4 rounded-xl border border-dashed border-line bg-soft/50 p-8 text-center text-sm text-ink/70">
+    No documentation pages yet. Sync the project to generate pages from
+    <span class="font-mono">{{ project.docs_folder }}/</span>.
+  </div>
+  {% endif %}
 </section>
 
 <section class="mt-8">

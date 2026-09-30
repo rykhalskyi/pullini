@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Wiki · {{ project.name }}{% endblock %}
+{% block content %}
+{% include "wiki/_nav.html" with active="tree" %}
+
+{% if pages %}
+<ul class="mt-8 space-y-1">
+  {% for page in pages %}
+  <li style="padding-left: {{ page.depth }}rem">
+    <a
+      href="{% url 'wiki:page' project.slug page.url_path %}"
+      class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-navy transition-colors hover:bg-soft"
+    >
+      <span class="text-ink/30" aria-hidden="true">&#8226;</span>
+      <span>{{ page.title }}</span>
+      <span class="ml-auto font-mono text-xs text-ink/40">{{ page.path }}</span>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="mt-8 rounded-xl border border-dashed border-line bg-soft/50 p-8 text-center text-sm text-ink/70">
+  No documentation pages found in <span class="font-mono">{{ project.docs_folder }}/</span>.
+</p>
+{% endif %}
+{% endblock %}
