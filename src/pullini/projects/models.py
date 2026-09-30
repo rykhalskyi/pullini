@@ -87,3 +87,42 @@ class Project(models.Model):
             hours = minutes // 60
             return f"every {hours} hour{'s' if hours != 1 else ''}"
         return f"every {minutes} minute{'s' if minutes != 1 else ''}"
+
+
+class SyncStatus(models.TextChoices):
+    IDLE = "idle", "Idle"
+    RUNNING = "running", "Running"
+    OK = "ok", "OK"
+    ERROR = "error", "Error"
+
+
+class ProjectSyncState(models.Model):
+    """Last known synchronization state for a project's local clone (HLD §7).
+
+    Git remains the source of truth; this only records the outcome of the most
+    recent attempt so the UI and health endpoint can report it.
+    """
+
+    project = models.OneToOneField(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="sync_state",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=SyncStatus.choices,
+        default=SyncStatus.IDLE,
+    )
+    last_commit = models.CharField(max_length=64, blank=True)
+    last_attempt_at = models.DateTimeField(null=True, blank=True)
+    last_success_at = models.DateTimeField(null=True, blank=True)
+    last_error = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "project sync state"
+        verbose_name_plural = "project sync states"
+
+    def __str__(self) -> str:
+        return f"{self.project.name}: {self.get_status_display()}"

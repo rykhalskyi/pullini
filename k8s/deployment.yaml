@@ -55,6 +55,30 @@ spec:
             limits:
               cpu: "1"
               memory: 512Mi
+        # Scheduler runs as a sidecar so it shares the ReadWriteOnce data volume
+        # with the web container (a separate CronJob could not mount it).
+        - name: scheduler
+          image: ghcr.io/rykhalskyi/pullini:latest
+          imagePullPolicy: IfNotPresent
+          command: ["/app/docker/scheduler.sh"]
+          env:
+            - name: PULLINI_SKIP_BOOTSTRAP
+              value: "true"
+          envFrom:
+            - configMapRef:
+                name: pullini-config
+            - secretRef:
+                name: pullini-secrets
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
       volumes:
         - name: data
           persistentVolumeClaim:

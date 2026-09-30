@@ -10,5 +10,6 @@ app_name = "projects"
 
 urlpatterns = [
     path("", views.project_list, name="list"),
+    path("<slug:slug>/refresh/", views.project_refresh, name="refresh"),
     path("<slug:slug>/", views.project_detail, name="detail"),
 ]

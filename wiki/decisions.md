@@ -15,3 +15,6 @@ Append-only decision record. The "why" lives here; the full change history lives
 - [2026-09-30] D-11 — Scheduled sync via a management command plus external cron/CronJob, not Celery or django-q2 — because V1 avoids unnecessary infrastructure
 - [2026-09-30] D-12 — Project management uses Django's built-in admin rather than a custom admin UI — because it is secure and fast, while public wiki pages stay custom and read-only
 - [2026-09-30] D-13 — Public project URLs are slug-based and repo URLs accept https/ssh/scp-like Git forms — because ssh remotes are common and friendly URLs suit documentation
+- [2026-09-30] D-14 — Git access uses the CLI via subprocess rather than GitPython/pygit2 — because Pullini only needs a shallow working tree and the stdlib keeps dependencies minimal
+- [2026-09-30] D-15 — The scheduler runs as a loop in a secondary container/sidecar rather than a CronJob — because the clone lives on a ReadWriteOnce volume that only one pod can mount, and the sidecar shares the pod volume
+- [2026-09-30] D-16 — Each project's sync is serialized with a per-project flock file — because manual refresh and the scheduled run can execute concurrently

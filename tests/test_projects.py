@@ -7,7 +7,8 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 
-from pullini.projects.models import Project
+from pullini.projects import views
+from pullini.projects.models import Project, SyncStatus
 
 pytestmark = pytest.mark.django_db
 
@@ -126,3 +127,80 @@ def test_admin_changelist_accessible_to_superuser(client):
     response = client.get("/admin/projects/project/")
 
     assert response.status_code == 200
+
+
+class _FakeState:
+    status = SyncStatus.OK
+    last_error = ""
+
+
+def test_refresh_button_hidden_from_public(client):
+    project = make_project()
+
+    assert b"Refresh now" not in client.get(project.get_absolute_url()).content
+
+
+def test_refresh_button_visible_to_staff(client):
+    user = get_user_model().objects.create_superuser("admin", password="secret")
+    client.force_login(user)
+    project = make_project()
+
+    assert b"Refresh now" in client.get(project.get_absolute_url()).content
+
+
+def test_refresh_requires_login(client, monkeypatch):
+    project = make_project()
+    monkeypatch.setattr(views, "sync_project", lambda *a, **k: pytest.fail("must not sync"))
+
+    response = client.post(reverse("projects:refresh", args=[project.slug]))
+
+    assert response.status_code == 302
+    assert "/admin/login/" in response.url
+
+
+def test_refresh_forbidden_for_non_staff(client):
+    user = get_user_model().objects.create_user("user", password="secret")
+    client.force_login(user)
+    project = make_project()
+
+    response = client.post(reverse("projects:refresh", args=[project.slug]))
+
+    assert response.status_code == 403
+
+
+def test_refresh_rejects_get(client):
+    user = get_user_model().objects.create_superuser("admin", password="secret")
+    client.force_login(user)
+    project = make_project()
+
+    response = client.get(reverse("projects:refresh", args=[project.slug]))
+
+    assert response.status_code == 405
+
+
+def test_staff_refresh_triggers_forced_sync(client, monkeypatch):
+    user = get_user_model().objects.create_superuser("admin", password="secret")
+    client.force_login(user)
+    project = make_project()
+    calls = []
+    monkeypatch.setattr(
+        views,
+        "sync_project",
+        lambda proj, force=False: (calls.append((proj.pk, force)), _FakeState())[1],
+    )
+
+    response = client.post(reverse("projects:refresh", args=[project.slug]))
+
+    assert response.status_code == 302
+    assert calls == [(project.pk, True)]
+
+
+def test_admin_change_form_has_refresh_button(client):
+    user = get_user_model().objects.create_superuser("admin", password="secret")
+    client.force_login(user)
+    project = make_project()
+
+    response = client.get(f"/admin/projects/project/{project.pk}/change/")
+
+    assert response.status_code == 200
+    assert b"Refresh now" in response.content
