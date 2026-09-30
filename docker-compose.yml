@@ -8,7 +8,7 @@ services:
     build: .
     image: pullini:latest
     ports:
-      - "8000:8000"
+      - "${PULLINI_PORT:-8000}:8000"
     environment:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?set DJANGO_SECRET_KEY (>=32 random characters) in .env}
       DJANGO_DEBUG: "false"
