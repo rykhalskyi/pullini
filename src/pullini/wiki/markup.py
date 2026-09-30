@@ -11,17 +11,81 @@ import posixpath
 import re
 
 import markdown as markdown_lib
+import nh3
 
 MARKDOWN_EXTENSIONS = ["fenced_code", "tables", "attr_list", "sane_lists", "toc"]
 MARKDOWN_SUFFIXES = (".md", ".markdown")
+
+# Rendered Markdown is untrusted: it comes from third-party Git repositories.
+# Raw HTML and event handlers are stripped, and only these tags/attributes
+# survive sanitization.
+ALLOWED_TAGS = {
+    "a",
+    "abbr",
+    "b",
+    "blockquote",
+    "br",
+    "code",
+    "dd",
+    "del",
+    "div",
+    "dl",
+    "dt",
+    "em",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "hr",
+    "img",
+    "kbd",
+    "li",
+    "ol",
+    "p",
+    "pre",
+    "s",
+    "span",
+    "strong",
+    "sub",
+    "sup",
+    "table",
+    "tbody",
+    "td",
+    "tfoot",
+    "th",
+    "thead",
+    "tr",
+    "ul",
+}
+ALLOWED_ATTRIBUTES = {
+    "*": {"class", "id"},
+    "a": {"href", "title"},
+    "img": {"src", "alt", "title"},
+    "th": {"align", "colspan", "rowspan"},
+    "td": {"align", "colspan", "rowspan"},
+}
+ALLOWED_URL_SCHEMES = {"http", "https", "mailto"}
 
 _TAG_RE = re.compile(r"<[^>]+>")
 _HREF_RE = re.compile(r'href="([^"]+)"')
 _SRC_RE = re.compile(r'src="([^"]+)"')
 
 
+def sanitize(html: str) -> str:
+    """Strip scripts, event handlers and dangerous URL schemes from rendered HTML."""
+    return nh3.clean(
+        html,
+        tags=ALLOWED_TAGS,
+        attributes=ALLOWED_ATTRIBUTES,
+        url_schemes=ALLOWED_URL_SCHEMES,
+        link_rel="noopener noreferrer",
+    )
+
+
 def render(content: str) -> str:
-    return markdown_lib.markdown(content, extensions=MARKDOWN_EXTENSIONS)
+    return sanitize(markdown_lib.markdown(content, extensions=MARKDOWN_EXTENSIONS))
 
 
 def to_plain_text(html: str) -> str:

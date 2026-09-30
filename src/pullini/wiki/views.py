@@ -9,6 +9,13 @@ from pullini.projects.views import visible_projects
 from pullini.wiki.generation import docs_path
 from pullini.wiki.models import Page
 
+# Assets that are safe to render inline. Script-capable formats (SVG, HTML,
+# XML, ...) are served as downloads so a repository cannot execute JavaScript
+# in the application's origin.
+INLINE_ASSET_SUFFIXES = frozenset(
+    {".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif", ".ico", ".bmp", ".woff", ".woff2"}
+)
+
 
 def _get_project(request: HttpRequest, slug: str):
     return get_object_or_404(visible_projects(request.user), slug=slug)
@@ -49,4 +56,12 @@ def wiki_asset(request: HttpRequest, slug: str, asset_path: str) -> HttpResponse
     target = (root / asset_path).resolve()
     if not target.is_file() or not target.is_relative_to(root):
         raise Http404
-    return FileResponse(open(target, "rb"))
+
+    inline = target.suffix.lower() in INLINE_ASSET_SUFFIXES
+    response = FileResponse(
+        open(target, "rb"),  # noqa: SIM115 - FileResponse closes the stream on response close
+        as_attachment=not inline,
+        filename=target.name if not inline else "",
+    )
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
