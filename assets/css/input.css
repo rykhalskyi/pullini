@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+/* Scan Django templates and Python modules for utility classes. */
+@source "../../templates";
+@source "../../src/pullini";
+
+/*
+ * Pullini design tokens, derived from the design guidelines.
+ * Navy + White are dominant; blue/red/orange are functional accents only.
+ */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+
+  --color-navy: #14213d;
+  --color-soft: #f5f7fa;
+  --color-line: #e2e8f0;
+  --color-git: #ff3b30;
+  --color-brand: #1677ff;
+  --color-accent: #ff9f1c;
+  --color-ink: #475569;
+}

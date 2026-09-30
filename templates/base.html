@@ -1,0 +1,47 @@
+{% load static %}<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Pullini{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'css/app.css' %}" />
+  </head>
+  <body class="h-full bg-white font-sans text-ink antialiased">
+    <header class="border-b border-line">
+      <div class="mx-auto flex max-w-6xl items-center gap-6 px-6 py-4">
+        <a href="{% url 'home' %}" class="flex items-center gap-2">
+          <span class="grid size-8 place-items-center rounded-lg bg-navy text-sm font-bold text-white"
+            >P</span
+          >
+          <span class="text-lg font-semibold tracking-tight text-navy">Pullini</span>
+        </a>
+        <span class="flex items-center gap-2 rounded-md bg-soft px-3 py-1.5 text-sm text-ink/70">
+          <svg
+            class="size-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          Search
+        </span>
+        <nav class="ml-auto flex items-center gap-4 text-sm">
+          <a href="/admin/" class="text-navy/80 transition-colors hover:text-brand">Settings</a>
+        </nav>
+      </div>
+    </header>
+    <main class="mx-auto max-w-6xl px-6 py-10">{% block content %}{% endblock %}</main>
+  </body>
+</html>
