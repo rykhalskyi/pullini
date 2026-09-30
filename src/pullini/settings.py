@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "pullini.core",
     "pullini.projects",
+    "pullini.wiki",
 ]
 
 MIDDLEWARE = [

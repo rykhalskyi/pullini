@@ -3,18 +3,15 @@
 from __future__ import annotations
 
 import shutil
-import subprocess
-from dataclasses import dataclass
 from datetime import timedelta
 from io import StringIO
-from pathlib import Path
 
 import pytest
 from django.core.management import call_command
 from django.utils import timezone
 
 from pullini.core.health import collect_status
-from pullini.projects.models import Project, SyncStatus
+from pullini.projects.models import SyncStatus
 from pullini.projects.sync import (
     SyncInProgress,
     is_due,
@@ -24,58 +21,6 @@ from pullini.projects.sync import (
 )
 
 pytestmark = pytest.mark.django_db
-
-
-def _git(cwd: Path, *args: str) -> None:
-    subprocess.run(
-        ["git", *args],
-        cwd=cwd,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-
-
-@dataclass
-class RemoteRepo:
-    bare: Path
-    work: Path
-
-    def commit(self, content: str) -> str:
-        (self.work / "docs" / "index.md").write_text(content)
-        _git(self.work, "add", ".")
-        _git(self.work, "commit", "-m", "update")
-        _git(self.work, "push", "origin", "main")
-        return content
-
-
-@pytest.fixture
-def remote_repo(tmp_path, monkeypatch) -> RemoteRepo:
-    for var in ("GIT_AUTHOR_NAME", "GIT_COMMITTER_NAME"):
-        monkeypatch.setenv(var, "Test")
-    for var in ("GIT_AUTHOR_EMAIL", "GIT_COMMITTER_EMAIL"):
-        monkeypatch.setenv(var, "test@example.com")
-
-    bare = tmp_path / "remote.git"
-    work = tmp_path / "work"
-    _git(tmp_path, "init", "--bare", "-b", "main", str(bare))
-    _git(tmp_path, "clone", str(bare), str(work))
-    (work / "docs").mkdir()
-    (work / "docs" / "index.md").write_text("# Home\n")
-    _git(work, "add", ".")
-    _git(work, "commit", "-m", "initial")
-    _git(work, "push", "origin", "main")
-    return RemoteRepo(bare=bare, work=work)
-
-
-@pytest.fixture
-def project(settings, tmp_path, remote_repo) -> Project:
-    settings.REPOSITORIES_DIR = tmp_path / "repositories"
-    return Project.objects.create(
-        name="Payments",
-        repo_url=f"file://{remote_repo.bare}",
-        branch="main",
-    )
 
 
 def test_sync_clones_repository(project):

@@ -57,6 +57,14 @@ uv run python manage.py sync_projects --force    # sync all enabled now
 uv run python manage.py sync_projects --project payments
 ```
 
+Wiki pages are regenerated automatically when a sync detects a changed commit.
+To rebuild them manually:
+
+```bash
+uv run python manage.py generate_pages
+uv run python manage.py generate_pages --project payments
+```
+
 ### Kubernetes / k3s + FluxCD
 
 Manifests in [`k8s/`](../../k8s). Create the Secret from `k8s/secret.example.yaml`
