@@ -57,7 +57,14 @@ python -c "import secrets; print(secrets.token_urlsafe(50))"   # paste into .env
 docker compose up --build
 ```
 
-SQLite and data live in the `pullini-data` volume (`/data`). For PostgreSQL, set
+SQLite and data live in the `pullini-data` volume (`/data`). Change the published
+host port with `PULLINI_PORT` (default `8000`) if it is already in use:
+
+```bash
+PULLINI_PORT=8080 docker compose up --build
+```
+
+For PostgreSQL, set
 `DATABASE_URL` in `.env` and start the `postgres` profile:
 
 ```bash

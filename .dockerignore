@@ -13,6 +13,5 @@ htmlcov
 wiki
 k8s
 .github
-README.md
 Dockerfile
 docker-compose.yml
