@@ -42,6 +42,17 @@
         </nav>
       </div>
     </header>
+    {% if messages %}
+    <div class="mx-auto max-w-6xl px-6 pt-6">
+      {% for message in messages %}
+      <div
+        class="mb-2 rounded-lg border px-4 py-2 text-sm {% if message.tags == 'error' %}border-git/40 bg-git/5 text-git{% elif message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-700{% else %}border-line bg-soft text-ink{% endif %}"
+      >
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
     <main class="mx-auto max-w-6xl px-6 py-10">{% block content %}{% endblock %}</main>
   </body>
 </html>
