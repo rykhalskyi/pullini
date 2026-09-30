@@ -10,17 +10,25 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}" />
+    <link rel="apple-touch-icon" href="{% static 'img/logo.png' %}" />
     <link rel="stylesheet" href="{% static 'css/app.css' %}" />
   </head>
-  <body class="h-full bg-white font-sans text-ink antialiased">
+  <body class="flex min-h-screen flex-col bg-white font-sans text-ink antialiased">
     <header class="border-b border-line">
       <div class="mx-auto flex max-w-6xl items-center gap-6 px-6 py-4">
-        <a href="{% url 'home' %}" class="flex items-center gap-2">
-          <span class="grid size-8 place-items-center rounded-lg bg-navy text-sm font-bold text-white"
-            >P</span
-          >
-          <span class="text-lg font-semibold tracking-tight text-navy">Pullini</span>
+        <a href="{% url 'home' %}" class="flex items-center">
+          <img
+            src="{% static 'img/logo-wordmark.png' %}"
+            alt="Pullini"
+            class="h-9 w-auto"
+          />
         </a>
+        <a
+          href="{% url 'projects:list' %}"
+          class="text-sm text-navy/80 transition-colors hover:text-brand"
+          >Browse projects</a
+        >
         <span class="flex items-center gap-2 rounded-md bg-soft px-3 py-1.5 text-sm text-ink/70">
           <svg
             class="size-4"
@@ -53,6 +61,8 @@
       {% endfor %}
     </div>
     {% endif %}
-    <main class="mx-auto max-w-6xl px-6 py-10">{% block content %}{% endblock %}</main>
+    <main class="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 py-10">
+      {% block content %}{% endblock %}
+    </main>
   </body>
 </html>

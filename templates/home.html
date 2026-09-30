@@ -1,25 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="mx-auto max-w-2xl text-center">
-  <h1 class="text-4xl font-bold tracking-tight text-navy">Pullini</h1>
-  <p class="mt-3 text-lg text-ink">
-    Git is the source of truth. Browse and search your team's documentation, read-only.
-  </p>
-  <div class="mt-8 flex justify-center gap-3">
-    <a
-      href="{% url 'projects:list' %}"
-      class="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90"
-      >Browse projects</a
-    >
-    <a
-      href="{% url 'healthz' %}"
-      class="rounded-md border border-line bg-white px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-soft"
-      >Health status</a
-    >
-  </div>
-</section>
-
-<section class="mt-12">
+<section class="flex-1">
   <h2 class="text-sm font-semibold uppercase tracking-wide text-ink/60">Projects</h2>
   <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {% for project in projects %}
@@ -33,22 +14,43 @@
   </div>
 </section>
 
-<section class="mt-12">
-  <h2 class="text-sm font-semibold uppercase tracking-wide text-ink/60">System status</h2>
-  <div class="mt-4 grid gap-4 sm:grid-cols-3">
-    {% for name, check in status.checks.items %}
-    <div class="rounded-xl border border-line bg-white p-5">
-      <div class="flex items-center justify-between">
-        <span class="text-sm font-medium capitalize text-navy">{{ name }}</span>
-        {% if check.ok %}
-        <span class="size-2 rounded-full bg-emerald-500" title="ok"></span>
-        {% else %}
-        <span class="size-2 rounded-full bg-git" title="error"></span>
+<section class="mt-16 border-t border-line pt-6">
+  <h2 class="text-xs font-semibold uppercase tracking-wide text-ink/50">System status</h2>
+  <div class="mt-3 grid grid-cols-1 gap-x-8 gap-y-1 text-xs text-ink/70 sm:grid-cols-2">
+    <ul class="space-y-1">
+      <li class="flex items-center gap-2">
+        <span
+          class="size-1.5 rounded-full {% if status.status == 'healthy' %}bg-emerald-500{% else %}bg-git{% endif %}"
+          aria-hidden="true"
+        ></span>
+        <span>status:</span>
+        <span class="font-medium text-navy">{{ status.status }}</span>
+      </li>
+      {% for name, check in status.checks.items %}
+        {% if name != 'data_dir' %}
+      <li class="flex items-center gap-2">
+        <span
+          class="size-1.5 rounded-full {% if check.ok %}bg-emerald-500{% else %}bg-git{% endif %}"
+          aria-hidden="true"
+        ></span>
+        <span>{{ name }}:</span>
+        <span class="break-all {% if check.ok %}text-navy{% else %}text-git{% endif %}">{{ check.detail }}</span>
+      </li>
         {% endif %}
-      </div>
-      <p class="mt-2 break-words text-sm text-ink">{{ check.detail }}</p>
-    </div>
-    {% endfor %}
+      {% endfor %}
+    </ul>
+    <ul class="space-y-1">
+      <li class="flex items-center gap-2">
+        <span class="size-1.5 rounded-full bg-line" aria-hidden="true"></span>
+        <span>projects:</span>
+        <span class="text-navy">{{ status.projects.total }} ({{ status.projects.enabled }} enabled)</span>
+      </li>
+      <li class="flex items-center gap-2">
+        <span class="size-1.5 rounded-full bg-line" aria-hidden="true"></span>
+        <span>last sync:</span>
+        <span class="text-navy">{% if status.last_sync %}{{ status.last_sync }}{% else %}-{% endif %}</span>
+      </li>
+    </ul>
   </div>
 </section>
 {% endblock %}

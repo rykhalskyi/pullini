@@ -140,12 +140,13 @@ def test_refresh_button_hidden_from_public(client):
     assert b"Refresh now" not in client.get(project.get_absolute_url()).content
 
 
-def test_refresh_button_visible_to_staff(client):
+def test_refresh_button_not_on_public_page_even_for_staff(client):
     user = get_user_model().objects.create_superuser("admin", password="secret")
     client.force_login(user)
     project = make_project()
 
-    assert b"Refresh now" in client.get(project.get_absolute_url()).content
+    # Forcing a refresh is admin-only; the public page never exposes it.
+    assert b"Refresh now" not in client.get(project.get_absolute_url()).content
 
 
 def test_refresh_requires_login(client, monkeypatch):
