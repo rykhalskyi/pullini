@@ -4,15 +4,16 @@
 {% include "wiki/_nav.html" with active="recent" %}
 
 {% if pages %}
-<ul class="mt-8 divide-y divide-line rounded-xl border border-line bg-white">
+<ul class="mt-8 space-y-1">
   {% for page in pages %}
   <li>
     <a
       href="{% url 'wiki:page' project.slug page.url_path %}"
-      class="flex items-center justify-between gap-4 px-5 py-3 transition-colors hover:bg-soft"
+      class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-navy transition-colors hover:bg-soft"
     >
-      <span class="font-medium text-navy">{{ page.title }}</span>
-      <span class="text-xs text-ink/50">{{ page.updated_at|date:"Y-m-d H:i" }} UTC</span>
+      <span class="text-ink/30" aria-hidden="true">&#8226;</span>
+      <span>{{ page.title }}</span>
+      <span class="ml-auto font-mono text-xs text-ink/40">{{ page.updated_at|date:"Y-m-d H:i" }} UTC</span>
     </a>
   </li>
   {% endfor %}

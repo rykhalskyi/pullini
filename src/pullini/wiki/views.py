@@ -27,12 +27,6 @@ def wiki_tree(request: HttpRequest, slug: str) -> HttpResponse:
     return render(request, "wiki/tree.html", {"project": project, "pages": pages})
 
 
-def wiki_index(request: HttpRequest, slug: str) -> HttpResponse:
-    project = _get_project(request, slug)
-    pages = project.pages.order_by("title")
-    return render(request, "wiki/index.html", {"project": project, "pages": pages})
-
-
 def wiki_recent(request: HttpRequest, slug: str) -> HttpResponse:
     project = _get_project(request, slug)
     pages = project.pages.order_by("-updated_at")[:50]

@@ -2,7 +2,7 @@
 created: 2026-09-30
 type: epic
 status: implemented
-summary: E4 — Markdown docs from the clone become read-only pages with tree/index/recent navigation.
+summary: E4 — Markdown docs from the clone become read-only pages with tree/recent navigation.
 ---
 
 # E4 — Wiki Generation
@@ -15,7 +15,7 @@ Builds on [E3 — Git Synchronization](epic-03-git-synchronization.md).
 Turn the configured documentation folder of each project's clone into read-only
 wiki pages: headings, links, images/assets, code blocks, tables, lists (HLD §8).
 The original Git files remain authoritative; Pullini generates presentation, not
-content. Provide tree / index / recent navigation and a clean reading view with
+content. Provide tree / recent navigation and a clean reading view with
 breadcrumbs, title, content, source path and last update (HLD §10, §11).
 Out of scope: search (E5), the full navigation shell (E6).
 
@@ -27,7 +27,7 @@ Out of scope: search (E5), the full navigation shell (E6).
    extraction, and rewriting of relative `.md` links and asset `src`.
 3. `wiki/generation.py`: scan the docs folder, upsert changed pages, delete
    pages whose files disappeared; idempotent via content hash.
-4. Views/URLs: tree, flat index, recent, page, and read-only asset serving.
+4. Views/URLs: tree, recent, page, and read-only asset serving.
 5. Regenerate after a sync detects a changed commit.
 6. `manage.py generate_pages` for manual regeneration.
 7. Templates + content styling; project page links to the wiki with a page count.
@@ -46,8 +46,9 @@ Key files:
 - [`templates/wiki/`](../../../templates/wiki)
 
 Deviations: content styling is hand-written rather than the Tailwind typography
-plugin; page URLs use the source path without extension, with `index/`,
-`recent/` and `assets/` reserved (see D-17–D-19).
+plugin; navigation is Tree + Recent only (no flat Index, deviating from HLD
+§10); page URLs use the source path without extension, reserving `recent/` and
+`assets/` (see D-17–D-19).
 
 ## Decisions
 

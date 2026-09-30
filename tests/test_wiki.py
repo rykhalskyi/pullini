@@ -113,10 +113,9 @@ def test_wiki_tree_lists_pages(client, project, remote_repo):
     assert b"Setup" in response.content
 
 
-def test_wiki_index_and_recent(client, project):
+def test_wiki_recent(client, project):
     sync_project(project, force=True)
 
-    assert b"Home" in client.get(reverse("wiki:index", args=[project.slug])).content
     assert b"Home" in client.get(reverse("wiki:recent", args=[project.slug])).content
 
 
@@ -129,6 +128,17 @@ def test_wiki_page_renders_content_and_source_path(client, project):
     assert response.status_code == 200
     assert b"Home" in response.content
     assert page.path.encode() in response.content
+
+
+def test_wiki_page_renders_code_blocks_with_copy_script(client, project, remote_repo):
+    remote_repo.write("docs/code.md", "# Code\n\n```python\nprint('hi')\n```\n")
+    sync_project(project, force=True)
+    page = project.pages.get(path="code.md")
+
+    response = client.get(reverse("wiki:page", args=[project.slug, page.url_path]))
+
+    assert b"<pre>" in response.content
+    assert b"js/copy-code.js" in response.content
 
 
 def test_wiki_page_unknown_is_404(client, project):
