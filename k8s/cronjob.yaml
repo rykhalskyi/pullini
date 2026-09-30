@@ -1,0 +1,44 @@
+# Scheduled project synchronization (HLD §7, default every 10 minutes).
+#
+# Suspended until E3 provides the `sync_projects` management command. The
+# schedule and shape are fixed here so enabling it later is a one-line change.
+#
+# NOTE: this jobs shares the ReadWriteOnce data PVC with the web Deployment.
+# Before enabling, E3 must confirm the storage class allows concurrent mounts
+# (RWX) or move synchronization into the web pod instead.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pullini-sync
+  namespace: pullini
+spec:
+  suspend: true
+  schedule: "*/10 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            fsGroup: 10001
+          containers:
+            - name: sync
+              image: ghcr.io/rykhalskyi/pullini:latest
+              command: ["python", "manage.py", "sync_projects"]
+              envFrom:
+                - configMapRef:
+                    name: pullini-config
+                - secretRef:
+                    name: pullini-secrets
+              volumeMounts:
+                - name: data
+                  mountPath: /data
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: pullini-data

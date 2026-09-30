@@ -216,3 +216,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Pullini
+/data/
+/staticfiles/
+static/css/app.css
+
+# Node / Tailwind
+node_modules/
+npm-debug.log*
+
+# Django / pytest caches
+.pytest_cache/
+.coverage
+htmlcov/
