@@ -78,7 +78,19 @@ def collect_status() -> dict[str, object]:
     return {
         "status": "healthy" if healthy else "unhealthy",
         "checks": {name: check.as_dict() for name, check in checks.items()},
-        # Populated by later epics (E2 projects, E3 sync).
-        "projects": {"total": 0, "enabled": 0},
-        "last_sync": None,
+        "projects": _project_counts(),
+        "last_sync": None,  # populated in E3
     }
+
+
+def _project_counts() -> dict[str, int | None]:
+    """Project counts, or ``None`` if the database is unavailable."""
+    try:
+        from pullini.projects.models import Project
+
+        return {
+            "total": Project.objects.count(),
+            "enabled": Project.objects.filter(enabled=True).count(),
+        }
+    except Exception:  # noqa: BLE001 - never let a count break the health endpoint
+        return {"total": None, "enabled": None}

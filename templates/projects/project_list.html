@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Projects · Pullini{% endblock %}
+{% block content %}
+<header>
+  <h1 class="text-3xl font-bold tracking-tight text-navy">Projects</h1>
+  <p class="mt-1 text-ink">Documentation synced from Git repositories.</p>
+</header>
+
+<div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  {% for project in projects %}
+    {% include "projects/_card.html" %}
+  {% empty %}
+  <p class="text-ink">No projects yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}
