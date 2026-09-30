@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}{% if query %}{{ query }} · {% endif %}Search · Pullini{% endblock %}
+{% block content %}
+<header>
+  <h1 class="text-3xl font-bold tracking-tight text-navy">Search</h1>
+  <p class="mt-1 text-ink">
+    {% if project %}
+    Searching in <span class="font-medium text-navy">{{ project.name }}</span>.
+    {% else %}
+    Searching all projects.
+    {% endif %}
+  </p>
+</header>
+
+<form method="get" action="{{ request.path }}" class="mt-6 flex max-w-xl items-center gap-2">
+  <input
+    type="search"
+    name="q"
+    value="{{ query }}"
+    placeholder="{% if project %}Search {{ project.name }}{% else %}Search all projects{% endif %}"
+    class="w-full rounded-md border border-line bg-panel px-4 py-2 text-sm text-navy placeholder:text-ink/50 focus:outline-none focus:ring-2 focus:ring-brand/40"
+    autofocus
+  />
+  <button
+    type="submit"
+    class="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90"
+  >
+    Search
+  </button>
+</form>
+
+{% if query %}
+<div class="mt-6 flex flex-wrap items-baseline justify-between gap-2 text-sm text-ink/70">
+  <p>
+    {{ results|length }} result{{ results|length|pluralize }} for
+    <span class="font-medium text-navy">“{{ query }}”</span>{% if project %} in {{ project.name }}{% else %} across all projects{% endif %}.
+  </p>
+  {% if project %}
+  <a href="{% url 'search:global' %}?q={{ query|urlencode }}" class="text-brand hover:underline"
+    >Search all projects</a
+  >
+  {% endif %}
+</div>
+
+<ul class="mt-4 divide-y divide-line rounded-xl border border-line bg-panel">
+  {% for result in results %}
+  <li>
+    <a
+      href="{% url 'wiki:page' result.page.project.slug result.page.url_path %}"
+      class="block px-5 py-4 transition-colors hover:bg-soft"
+    >
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <span class="font-medium text-navy">{{ result.page.title }}</span>
+        <span class="flex items-center gap-1 text-xs text-ink/50">
+          <span aria-hidden="true" class="text-git">&#9679;</span>
+          {{ result.page.project.name }} / <span class="font-mono">{{ result.page.path }}</span>
+        </span>
+      </div>
+      <p class="mt-1 text-sm text-ink">{{ result.snippet }}</p>
+    </a>
+  </li>
+  {% empty %}
+  <li class="px-5 py-8 text-center text-sm text-ink/70">No pages matched your search.</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="mt-6 text-sm text-ink/70">Type a query to search page titles, content and paths.</p>
+{% endif %}
+{% endblock %}

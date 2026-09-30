@@ -52,6 +52,7 @@ pullini/
 
 Implemented so far: [E1 — Foundation](epics/epic-01-foundation.md),
 [E2 — Admin & Projects](epics/epic-02-admin-and-projects.md),
-[E3 — Git Synchronization](epics/epic-03-git-synchronization.md) and
-[E4 — Wiki Generation](epics/epic-04-wiki-generation.md). Subsequent work is
-tracked in the same folder.
+[E3 — Git Synchronization](epics/epic-03-git-synchronization.md),
+[E4 — Wiki Generation](epics/epic-04-wiki-generation.md) and
+[E5 — Search](epics/epic-05-search.md). Subsequent work is tracked in the same
+folder.
