@@ -31,6 +31,34 @@ def test_defaults_and_slug():
     assert project.get_absolute_url() == reverse("projects:detail", kwargs={"slug": "payments"})
 
 
+def test_display_url_masks_embedded_credentials():
+    project = Project(
+        name="Private",
+        repo_url="https://user:s3cret@git.example.com/team/repo.git",
+    )
+
+    assert project.display_url == "https://***@git.example.com/team/repo.git"
+    assert "s3cret" not in project.display_url
+
+
+def test_display_url_leaves_scp_like_urls_unchanged():
+    project = Project(name="Repo", repo_url="git@github.com:team/repo.git")
+
+    assert project.display_url == "git@github.com:team/repo.git"
+
+
+def test_public_page_hides_embedded_credentials(client):
+    project = make_project(
+        name="Private",
+        repo_url="https://user:s3cret@git.example.com/private.git",
+    )
+
+    response = client.get(project.get_absolute_url())
+
+    assert b"s3cret" not in response.content
+    assert b"***@git.example.com" in response.content
+
+
 def test_slug_collision_gets_suffix():
     first = make_project(name="My Docs")
     second = make_project(name="My-Docs")

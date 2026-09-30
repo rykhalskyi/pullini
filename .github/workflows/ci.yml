@@ -39,7 +39,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      DJANGO_SECRET_KEY: ci-only-secret-key
+      DJANGO_SECRET_KEY: ci-only-secret-key-not-for-production-0123456789
       DJANGO_DEBUG: "false"
     steps:
       - uses: actions/checkout@v4

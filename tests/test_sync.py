@@ -11,6 +11,7 @@ from django.core.management import call_command
 from django.utils import timezone
 
 from pullini.core.health import collect_status
+from pullini.projects.git import git_env
 from pullini.projects.models import SyncStatus
 from pullini.projects.sync import (
     SyncInProgress,
@@ -97,6 +98,16 @@ def test_sync_projects_command(project):
 
     assert project.sync_state.status == SyncStatus.OK
     assert "1 project(s)" in out.getvalue()
+
+
+def test_git_env_is_non_interactive(monkeypatch):
+    monkeypatch.delenv("GIT_TERMINAL_PROMPT", raising=False)
+    monkeypatch.delenv("GIT_SSH_COMMAND", raising=False)
+
+    env = git_env()
+
+    assert env["GIT_TERMINAL_PROMPT"] == "0"
+    assert "BatchMode=yes" in env["GIT_SSH_COMMAND"]
 
 
 def test_health_reports_last_sync(project):

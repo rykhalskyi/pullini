@@ -8,6 +8,7 @@ truth; this model only stores configuration.
 from __future__ import annotations
 
 import re
+from urllib.parse import urlsplit, urlunsplit
 
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
@@ -79,6 +80,18 @@ class Project(models.Model):
             slug = f"{base}-{suffix}"
             suffix += 1
         return slug
+
+    @property
+    def display_url(self) -> str:
+        """Repo URL with any embedded credentials masked, safe for public display."""
+        try:
+            parts = urlsplit(self.repo_url)
+        except ValueError:
+            return self.repo_url
+        if "@" not in parts.netloc:
+            return self.repo_url
+        netloc = f"***@{parts.netloc.rpartition('@')[2]}"
+        return urlunsplit((parts.scheme, netloc, parts.path, parts.query, parts.fragment))
 
     @property
     def update_interval_display(self) -> str:

@@ -67,17 +67,28 @@ def check_data_dir() -> Check:
     return Check(True, str(settings.DATA_DIR))
 
 
-def collect_status() -> dict[str, object]:
-    """Aggregate application status. Individual checks never raise."""
+def collect_status(*, detailed: bool = True) -> dict[str, object]:
+    """Aggregate application status. Individual checks never raise.
+
+    When ``detailed`` is false the per-check payloads are redacted so public
+    status endpoints do not leak filesystem paths, versions or driver errors.
+    """
     checks = {
         "database": check_database(),
         "git": check_git(),
         "data_dir": check_data_dir(),
     }
     healthy = all(check.ok for check in checks.values())
+    if detailed:
+        payload = {name: check.as_dict() for name, check in checks.items()}
+    else:
+        payload = {
+            name: {"ok": check.ok, "detail": "ok" if check.ok else "unavailable"}
+            for name, check in checks.items()
+        }
     return {
         "status": "healthy" if healthy else "unhealthy",
-        "checks": {name: check.as_dict() for name, check in checks.items()},
+        "checks": payload,
         "projects": _project_counts(),
         "last_sync": _last_sync(),
     }

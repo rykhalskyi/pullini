@@ -10,7 +10,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-change-me-in-production}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?set DJANGO_SECRET_KEY (>=32 random characters) in .env}
       DJANGO_DEBUG: "false"
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
       DJANGO_SECURE_COOKIES: ${DJANGO_SECURE_COOKIES:-false}
@@ -38,7 +38,7 @@ services:
       - web
     command: ["/app/docker/scheduler.sh"]
     environment:
-      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-change-me-in-production}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?set DJANGO_SECRET_KEY (>=32 random characters) in .env}
       DJANGO_DEBUG: "false"
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
       DATA_DIR: /data
