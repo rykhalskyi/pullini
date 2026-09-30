@@ -123,7 +123,12 @@ class PostgresSearchBackend(SimpleSearchBackend):
         search_query = SearchQuery(query, search_type="websearch")
         pages = (
             pages.annotate(rank=SearchRank(vector, search_query))
-            .filter(Q(rank__gte=0.01) | Q(project__name__icontains=query))
+            .filter(
+                Q(rank__gte=0.01)
+                | Q(title__icontains=query)
+                | Q(path__icontains=query)
+                | Q(project__name__icontains=query)
+            )
             .order_by("-rank", "title")
         )
 

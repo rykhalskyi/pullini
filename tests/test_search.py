@@ -32,12 +32,13 @@ def test_search_finds_page_by_title(client, project):
 
 
 def test_search_matches_page_path(client, project, remote_repo):
-    remote_repo.write("docs/guide/setup.md", "# Setup\n\nHello.\n")
+    # "zebra" appears only in the path, not the title or body.
+    remote_repo.write("docs/guide/zebra.md", "# Overview\n\nHello.\n")
     sync_project(project, force=True)
 
-    response = client.get(reverse("search:global"), {"q": "guide/setup"})
+    response = client.get(reverse("search:global"), {"q": "zebra"})
 
-    assert b"Setup" in response.content
+    assert b"Overview" in response.content
 
 
 def test_search_matches_project_name(client, project):

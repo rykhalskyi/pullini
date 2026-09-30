@@ -32,9 +32,10 @@ full-text search where practical, abstracted so both installation types work.
 
 ## Outcome
 
-Shipped. `uv run pytest` → 75 passed, 1 skipped (Postgres-only, run in CI);
-ruff clean. Verified against `byebyemoneylist`: `dashboard`, `quick purchase`
-and `sync` return correctly ranked results.
+Shipped. `uv run pytest` → 75 passed, 1 skipped on SQLite; **76 passed** against
+PostgreSQL (the native-FTS path). ruff clean. Verified against
+`byebyemoneylist`: `dashboard`, `quick purchase` and `sync` return correctly
+ranked results.
 
 Key files:
 
