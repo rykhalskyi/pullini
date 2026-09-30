@@ -10,6 +10,7 @@ from pullini.core import views
 urlpatterns = [
     path("", views.home, name="home"),
     path("healthz", views.healthz, name="healthz"),
+    path("livez", views.livez, name="livez"),
     path("projects/", include("pullini.projects.urls")),
     path("projects/", include("pullini.wiki.urls")),
     path("search/", include("pullini.search.urls")),

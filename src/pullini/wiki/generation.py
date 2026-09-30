@@ -21,12 +21,22 @@ def docs_path(project) -> Path:
     return repository_path(project) / project.docs_folder.strip("/")
 
 
-def _iter_markdown_files(root: Path) -> Iterator[Path]:
+def _iter_markdown_files(root: Path, repository: Path) -> Iterator[Path]:
+    """Yield Markdown files that physically live inside the repository.
+
+    Symlinks are never followed: a repository must not be able to read files
+    outside its own working tree (e.g. ``docs/leak.md -> /etc/passwd``).
+    """
+    resolved_root = root.resolve()
+    resolved_repo = repository.resolve()
     for path in sorted(root.rglob("*")):
         if (
             path.is_file()
+            and not path.is_symlink()
             and path.suffix.lower() in markup.MARKDOWN_SUFFIXES
             and ".git" not in path.parts
+            and path.resolve().is_relative_to(resolved_root)
+            and path.resolve().is_relative_to(resolved_repo)
         ):
             yield path
 
@@ -34,12 +44,19 @@ def _iter_markdown_files(root: Path) -> Iterator[Path]:
 def generate_pages(project) -> int:
     """Rebuild the project's pages from disk; return how many changed."""
     root = docs_path(project)
+    repository = repository_path(project)
     seen: set[str] = set()
     changed = 0
 
+    docs_are_safe = (
+        root.is_dir()
+        and not root.is_symlink()
+        and root.resolve().is_relative_to(repository.resolve())
+    )
+
     with transaction.atomic():
-        if root.is_dir():
-            for file_path in _iter_markdown_files(root):
+        if docs_are_safe:
+            for file_path in _iter_markdown_files(root, repository):
                 rel = file_path.relative_to(root).as_posix()
                 seen.add(rel)
 

@@ -7,6 +7,7 @@ single-branch. Using the CLI keeps the dependency surface small and matches the
 
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
 
@@ -15,6 +16,18 @@ GIT_TIMEOUT_SECONDS = 300
 
 class GitError(RuntimeError):
     """A git command failed or could not be started."""
+
+
+def git_env() -> dict[str, str]:
+    """Environment that keeps git non-interactive.
+
+    Without this a private/unknown remote blocks a worker waiting for
+    credentials or a host-key prompt until the timeout expires.
+    """
+    env = os.environ.copy()
+    env.setdefault("GIT_TERMINAL_PROMPT", "0")
+    env.setdefault("GIT_SSH_COMMAND", "ssh -o BatchMode=yes")
+    return env
 
 
 def run_git(*args: str, cwd: Path | None = None, timeout: int = GIT_TIMEOUT_SECONDS) -> str:
@@ -27,6 +40,7 @@ def run_git(*args: str, cwd: Path | None = None, timeout: int = GIT_TIMEOUT_SECO
             text=True,
             timeout=timeout,
             check=False,
+            env=git_env(),
         )
     except (OSError, subprocess.SubprocessError) as exc:
         raise GitError(f"could not run git {args[0]}: {exc}") from exc

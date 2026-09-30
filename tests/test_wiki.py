@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import shutil
+
 import pytest
 from django.urls import reverse
 
 from pullini.projects.models import Project
-from pullini.projects.sync import sync_project
+from pullini.projects.sync import repository_path, sync_project
 from pullini.wiki import markup
 from pullini.wiki.generation import generate_pages
 
@@ -22,6 +24,47 @@ def test_render_supports_common_markup():
     assert "<h1" in html
     assert "<table>" in html
     assert "<code>" in html
+
+
+def test_render_strips_scripts_and_event_handlers():
+    html = markup.render(
+        "<script>alert(1)</script>\n\n<img src=x onerror=alert(2)>\n\n<iframe src=y></iframe>"
+    )
+
+    assert "<script" not in html
+    assert "onerror" not in html
+    assert "<iframe" not in html
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        '<a href="javascript:alert(1)">x</a>',
+        "<a href='javascript:alert(1)'>x</a>",
+        '<a href="data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==">x</a>',
+    ],
+)
+def test_render_strips_dangerous_url_schemes(content):
+    html = markup.render(content)
+
+    assert "javascript:" not in html
+    assert "data:" not in html
+    assert "href" not in html
+
+
+def test_render_keeps_safe_markup():
+    content = (
+        "# Title\n\n"
+        "[link](https://example.com)\n\n"
+        "```python\nprint(1)\n```\n\n"
+        "| A | B |\n|---|---|\n| 1 | 2 |\n"
+    )
+    html = markup.render(content)
+
+    assert '<h1 id="title">' in html or "<h1" in html
+    assert 'href="https://example.com"' in html
+    assert 'class="language-python"' in html
+    assert "<table>" in html
 
 
 def test_plain_text_strips_tags():
@@ -100,6 +143,33 @@ def test_regeneration_removes_deleted_pages(project, remote_repo):
     assert not project.pages.filter(path="extra.md").exists()
 
 
+def test_generation_ignores_symlinked_files(project, remote_repo, tmp_path):
+    secret = tmp_path / "secret.md"
+    secret.write_text("# Secret\n\nTOPSECRET\n")
+    sync_project(project, force=True)
+
+    (repository_path(project) / "docs" / "leak.md").symlink_to(secret)
+
+    generate_pages(project)
+
+    assert not project.pages.filter(path="leak.md").exists()
+
+
+def test_generation_ignores_symlinked_docs_folder(project, remote_repo, tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "x.md").write_text("# X\n")
+    sync_project(project, force=True)
+
+    repo_docs = repository_path(project) / "docs"
+    shutil.rmtree(repo_docs)
+    repo_docs.symlink_to(outside, target_is_directory=True)
+
+    generate_pages(project)
+
+    assert not project.pages.filter(path="x.md").exists()
+
+
 # --- views ------------------------------------------------------------------
 
 
@@ -161,6 +231,28 @@ def test_wiki_asset_missing_is_404(client, project):
     sync_project(project, force=True)
 
     assert client.get(reverse("wiki:asset", args=[project.slug, "nope.png"])).status_code == 404
+
+
+def test_wiki_asset_scriptable_types_are_downloaded(client, project, remote_repo):
+    remote_repo.write("docs/img/logo.svg", "<svg onload=alert(1)></svg>")
+    sync_project(project, force=True)
+
+    response = client.get(reverse("wiki:asset", args=[project.slug, "img/logo.svg"]))
+
+    assert response.status_code == 200
+    assert response["Content-Disposition"].startswith("attachment")
+    assert response["X-Content-Type-Options"] == "nosniff"
+
+
+def test_wiki_asset_images_are_inline(client, project, remote_repo):
+    remote_repo.write("docs/img/logo.png", "not-a-real-png")
+    sync_project(project, force=True)
+
+    response = client.get(reverse("wiki:asset", args=[project.slug, "img/logo.png"]))
+
+    assert response.status_code == 200
+    assert not response["Content-Disposition"].startswith("attachment")
+    assert response["X-Content-Type-Options"] == "nosniff"
 
 
 def test_wiki_hidden_for_disabled_project(client, remote_repo):

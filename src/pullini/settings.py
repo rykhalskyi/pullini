@@ -21,6 +21,9 @@ env = environ.Env(
     DJANGO_ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1", "[::1]"]),
     DJANGO_CSRF_TRUSTED_ORIGINS=(list, []),
     DJANGO_SECURE_COOKIES=(bool, True),
+    DJANGO_TRUST_PROXY_HEADERS=(bool, False),
+    DJANGO_SECURE_SSL_REDIRECT=(bool, False),
+    DJANGO_SECURE_HSTS_SECONDS=(int, 0),
     DATA_DIR=(str, str(BASE_DIR / "data")),
 )
 
@@ -31,9 +34,20 @@ DEBUG = env("DJANGO_DEBUG")
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS")
 CSRF_TRUSTED_ORIGINS = env("DJANGO_CSRF_TRUSTED_ORIGINS")
 
-if not DEBUG and SECRET_KEY == "insecure-development-key-change-me":
+# Values shipped in examples/manifests must never sign anything in production.
+_INSECURE_SECRET_KEYS = {
+    "insecure-development-key-change-me",
+    "change-me-in-production",
+    "change-me",
+    "dev-only-insecure-secret",
+    "replace-with-a-long-random-value",
+    "secret",
+}
+
+if not DEBUG and (SECRET_KEY in _INSECURE_SECRET_KEYS or len(SECRET_KEY) < 32):
     raise ImproperlyConfigured(
-        "DJANGO_SECRET_KEY must be set to a unique, secret value when DEBUG is off."
+        "DJANGO_SECRET_KEY must be set to a unique, random value of at least 32 "
+        "characters when DEBUG is off."
     )
 
 # ---------------------------------------------------------------------------
@@ -135,11 +149,25 @@ STORAGES = {
 # Security (production only)
 # ---------------------------------------------------------------------------
 if not DEBUG:
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    # Only trust X-Forwarded-Proto when an operator confirms a proxy strips it.
+    # Trusting it unconditionally lets any direct client spoof HTTPS.
+    if env("DJANGO_TRUST_PROXY_HEADERS"):
+        SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
     SECURE_COOKIES = env("DJANGO_SECURE_COOKIES")
     SESSION_COOKIE_SECURE = SECURE_COOKIES
     CSRF_COOKIE_SECURE = SECURE_COOKIES
     SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = "same-origin"
+
+    # Off by default so a misconfigured proxy cannot cause redirect loops;
+    # enable alongside DJANGO_TRUST_PROXY_HEADERS when TLS terminates upstream.
+    SECURE_SSL_REDIRECT = env("DJANGO_SECURE_SSL_REDIRECT")
+
+    SECURE_HSTS_SECONDS = env("DJANGO_SECURE_HSTS_SECONDS")
+    if SECURE_HSTS_SECONDS:
+        SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+        SECURE_HSTS_PRELOAD = True
 
 # ---------------------------------------------------------------------------
 # Logging

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from pullini.core import health
@@ -21,6 +22,31 @@ def test_healthz_reports_healthy(client):
     assert payload["checks"]["data_dir"]["ok"] is True
     assert payload["projects"] == {"total": 0, "enabled": 0}
     assert payload["last_sync"] is None
+
+
+def test_livez_reports_ok_without_dependency_checks(client):
+    response = client.get(reverse("livez"))
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+
+def test_healthz_redacts_details_for_anonymous(client, settings):
+    settings.DEBUG = False
+
+    payload = client.get(reverse("healthz")).json()
+
+    assert payload["checks"]["data_dir"]["detail"] in {"ok", "unavailable"}
+
+
+def test_healthz_shows_details_to_staff(client, settings):
+    settings.DEBUG = False
+    user = get_user_model().objects.create_user("admin", password="secret", is_staff=True)
+    client.force_login(user)
+
+    payload = client.get(reverse("healthz")).json()
+
+    assert payload["checks"]["data_dir"]["detail"] == str(settings.DATA_DIR)
 
 
 def test_home_renders_design_shell(client):

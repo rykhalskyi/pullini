@@ -48,7 +48,12 @@ uv run ruff format --check .
 
 ### Docker Compose
 
+Set a real `DJANGO_SECRET_KEY` (at least 32 random characters) in `.env` first —
+Compose runs with `DJANGO_DEBUG=false`, and the placeholder from
+`.env.example` is refused in production:
+
 ```bash
+python -c "import secrets; print(secrets.token_urlsafe(50))"   # paste into .env
 docker compose up --build
 ```
 
@@ -70,3 +75,8 @@ then apply via Flux (`k8s/flux.yaml`) or `kubectl apply -k k8s`.
 All configuration is environment-driven; see [`.env.example`](.env.example).
 Key variables: `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS`,
 `DATABASE_URL`, `DATA_DIR`.
+
+Production TLS is opt-in: set `DJANGO_TRUST_PROXY_HEADERS=true` only when a proxy
+you control strips `X-Forwarded-Proto`, and optionally `DJANGO_SECURE_SSL_REDIRECT`
+and `DJANGO_SECURE_HSTS_SECONDS`. Liveness is at `/livez` (process only);
+`/healthz` reports dependency status and redacts details for anonymous users.
