@@ -12,5 +12,6 @@ urlpatterns = [
     path("healthz", views.healthz, name="healthz"),
     path("projects/", include("pullini.projects.urls")),
     path("projects/", include("pullini.wiki.urls")),
+    path("search/", include("pullini.search.urls")),
     path("admin/", admin.site.urls),
 ]

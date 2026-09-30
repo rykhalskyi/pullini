@@ -48,9 +48,13 @@
           class="text-sm text-navy/80 transition-colors hover:text-brand"
           >Browse projects</a
         >
-        <span class="hidden w-80 items-center gap-2 rounded-md bg-soft px-3 py-1.5 text-sm text-ink/70 sm:flex">
+        <form
+          method="get"
+          action="{% url 'search:global' %}"
+          class="hidden w-80 items-center gap-2 rounded-md bg-soft px-3 py-1.5 text-sm text-ink/70 focus-within:ring-2 focus-within:ring-brand/40 sm:flex"
+        >
           <svg
-            class="size-4"
+            class="size-4 shrink-0"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -62,8 +66,15 @@
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.3-4.3" />
           </svg>
-          Search
-        </span>
+          <input
+            type="search"
+            name="q"
+            value="{{ request.GET.q|default:'' }}"
+            placeholder="Search all projects"
+            aria-label="Search"
+            class="w-full bg-transparent text-navy placeholder:text-ink/50 focus:outline-none"
+          />
+        </form>
         <nav class="ml-auto flex items-center gap-4 text-sm">
           <button
             type="button"

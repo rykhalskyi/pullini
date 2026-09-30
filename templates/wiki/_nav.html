@@ -14,16 +14,44 @@
       <span class="font-mono">{{ project.docs_folder }}/</span>
     </p>
   </div>
-  <div class="flex items-center gap-1 rounded-lg border border-line p-1 text-sm">
-    <a
-      href="{% url 'wiki:tree' project.slug %}"
-      class="rounded-md px-3 py-1 transition-colors {% if active == 'tree' %}bg-brand/10 font-medium text-brand{% else %}text-navy hover:bg-soft{% endif %}"
-      >Tree</a
+  <div class="flex flex-wrap items-center gap-3">
+    <form
+      method="get"
+      action="{% url 'search:project' project.slug %}"
+      class="flex items-center gap-2 rounded-md border border-line bg-panel px-3 py-1.5 text-sm"
     >
-    <a
-      href="{% url 'wiki:recent' project.slug %}"
-      class="rounded-md px-3 py-1 transition-colors {% if active == 'recent' %}bg-brand/10 font-medium text-brand{% else %}text-navy hover:bg-soft{% endif %}"
-      >Recent</a
-    >
+      <svg
+        class="size-4 shrink-0 text-ink/50"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </svg>
+      <input
+        type="search"
+        name="q"
+        placeholder="Search this project"
+        aria-label="Search this project"
+        class="w-44 bg-transparent text-navy placeholder:text-ink/50 focus:outline-none"
+      />
+    </form>
+    <div class="flex items-center gap-1 rounded-lg border border-line p-1 text-sm">
+      <a
+        href="{% url 'wiki:tree' project.slug %}"
+        class="rounded-md px-3 py-1 transition-colors {% if active == 'tree' %}bg-brand/10 font-medium text-brand{% else %}text-navy hover:bg-soft{% endif %}"
+        >Tree</a
+      >
+      <a
+        href="{% url 'wiki:recent' project.slug %}"
+        class="rounded-md px-3 py-1 transition-colors {% if active == 'recent' %}bg-brand/10 font-medium text-brand{% else %}text-navy hover:bg-soft{% endif %}"
+        >Recent</a
+      >
+    </div>
   </div>
 </div>
