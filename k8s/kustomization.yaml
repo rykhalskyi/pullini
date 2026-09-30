@@ -7,6 +7,5 @@ resources:
   - pvc.yaml
   - deployment.yaml
   - service.yaml
-  - cronjob.yaml
 # `secret.example.yaml` is intentionally not listed: create the Secret through
 # your secret-management tooling (SealedSecrets / SOPS) before applying.

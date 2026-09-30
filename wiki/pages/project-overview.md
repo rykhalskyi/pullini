@@ -50,6 +50,7 @@ pullini/
 └── wiki/                      # this knowledge base
 ```
 
-Implemented so far: [E1 — Foundation](epics/epic-01-foundation.md) and
-[E2 — Admin & Projects](epics/epic-02-admin-and-projects.md). Subsequent work is
-tracked in the same folder.
+Implemented so far: [E1 — Foundation](epics/epic-01-foundation.md),
+[E2 — Admin & Projects](epics/epic-02-admin-and-projects.md) and
+[E3 — Git Synchronization](epics/epic-03-git-synchronization.md). Subsequent work
+is tracked in the same folder.

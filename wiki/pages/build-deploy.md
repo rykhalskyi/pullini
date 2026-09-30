@@ -46,6 +46,16 @@ docker compose --profile postgres up --build   # PostgreSQL (set DATABASE_URL in
 ```
 
 The entrypoint runs migrations (with retries) and `collectstatic` before gunicorn.
+A `scheduler` service runs `manage.py sync_projects` in a loop (set
+`PULLINI_SKIP_BOOTSTRAP=true` so it does not re-run migrations).
+
+### Synchronization
+
+```bash
+uv run python manage.py sync_projects            # sync projects that are due
+uv run python manage.py sync_projects --force    # sync all enabled now
+uv run python manage.py sync_projects --project payments
+```
 
 ### Kubernetes / k3s + FluxCD
 

@@ -32,6 +32,23 @@ services:
       start_period: 20s
     restart: unless-stopped
 
+  scheduler:
+    image: pullini:latest
+    depends_on:
+      - web
+    command: ["/app/docker/scheduler.sh"]
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-change-me-in-production}
+      DJANGO_DEBUG: "false"
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      DATA_DIR: /data
+      DATABASE_URL: ${DATABASE_URL:-}
+      PULLINI_SKIP_BOOTSTRAP: "true"
+      SYNC_POLL_SECONDS: ${SYNC_POLL_SECONDS:-60}
+    volumes:
+      - pullini-data:/data
+    restart: unless-stopped
+
   db:
     image: postgres:17-alpine
     profiles: ["postgres"]

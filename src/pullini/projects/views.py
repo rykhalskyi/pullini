@@ -5,7 +5,7 @@ from __future__ import annotations
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 
-from pullini.projects.models import Project
+from pullini.projects.models import Project, ProjectSyncState
 
 
 def visible_projects(user):
@@ -26,4 +26,9 @@ def project_list(request: HttpRequest) -> HttpResponse:
 
 def project_detail(request: HttpRequest, slug: str) -> HttpResponse:
     project = get_object_or_404(visible_projects(request.user), slug=slug)
-    return render(request, "projects/project_detail.html", {"project": project})
+    sync_state = ProjectSyncState.objects.filter(project=project).first()
+    return render(
+        request,
+        "projects/project_detail.html",
+        {"project": project, "sync_state": sync_state},
+    )

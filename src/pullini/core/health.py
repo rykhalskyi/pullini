@@ -79,8 +79,24 @@ def collect_status() -> dict[str, object]:
         "status": "healthy" if healthy else "unhealthy",
         "checks": {name: check.as_dict() for name, check in checks.items()},
         "projects": _project_counts(),
-        "last_sync": None,  # populated in E3
+        "last_sync": _last_sync(),
     }
+
+
+def _last_sync() -> str | None:
+    """ISO timestamp of the most recent successful project sync, if any."""
+    try:
+        from pullini.projects.models import ProjectSyncState
+
+        value = (
+            ProjectSyncState.objects.filter(last_success_at__isnull=False)
+            .order_by("-last_success_at")
+            .values_list("last_success_at", flat=True)
+            .first()
+        )
+    except Exception:  # noqa: BLE001 - never let this break the health endpoint
+        return None
+    return value.isoformat() if value else None
 
 
 def _project_counts() -> dict[str, int | None]:
