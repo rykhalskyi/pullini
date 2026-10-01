@@ -7,9 +7,13 @@ single-branch. Using the CLI keeps the dependency surface small and matches the
 
 from __future__ import annotations
 
+import logging
 import os
+import shutil
 import subprocess
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 GIT_TIMEOUT_SECONDS = 300
 
@@ -63,7 +67,29 @@ def current_commit(repo: Path) -> str:
     return run_git("rev-parse", "HEAD", cwd=repo)
 
 
-def clone(repo_url: str, branch: str, dest: Path) -> None:
+def clone(repo_url: str, branch: str, dest: Path, *, sparse_path: str | None = None) -> None:
+    """Clone a shallow, single-branch working tree.
+
+    When ``sparse_path`` is given the clone first tries a partial clone
+    (``--filter=blob:none``) limited to that path via sparse checkout, so huge
+    repositories only download the blobs under the documentation folder. Servers
+    that do not support partial clone either ignore the filter (git warns and
+    downloads everything anyway) or refuse the clone; in the latter case we
+    retry with a plain shallow clone of the whole branch.
+    """
+    if sparse_path:
+        try:
+            _clone_sparse(repo_url, branch, dest, sparse_path)
+            return
+        except GitError as exc:
+            logger.warning(
+                "sparse clone of %s failed, falling back to a full clone: %s",
+                repo_url,
+                exc,
+            )
+            if dest.exists():
+                shutil.rmtree(dest)
+
     run_git(
         "clone",
         "--depth",
@@ -74,6 +100,34 @@ def clone(repo_url: str, branch: str, dest: Path) -> None:
         repo_url,
         str(dest),
     )
+
+
+def _clone_sparse(repo_url: str, branch: str, dest: Path, sparse_path: str) -> None:
+    run_git(
+        "clone",
+        "--depth",
+        "1",
+        "--single-branch",
+        "--branch",
+        branch,
+        "--filter=blob:none",
+        "--sparse",
+        repo_url,
+        str(dest),
+    )
+    sparse_checkout_set(dest, sparse_path)
+
+
+def sparse_checkout_set(repo: Path, path: str) -> None:
+    """Limit the working tree to ``path`` (cone mode)."""
+    run_git("sparse-checkout", "set", "--cone", path, cwd=repo)
+
+
+def is_sparse(repo: Path) -> bool:
+    try:
+        return run_git("config", "--bool", "--get", "core.sparseCheckout", cwd=repo) == "true"
+    except GitError:
+        return False
 
 
 def fetch_and_reset(branch: str, dest: Path) -> None:

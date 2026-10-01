@@ -52,6 +52,8 @@ def remote_repo(tmp_path, monkeypatch) -> RemoteRepo:
     git(tmp_path, "clone", str(bare), str(work))
     (work / "docs").mkdir()
     (work / "docs" / "index.md").write_text("# Home\n")
+    (work / "app").mkdir()
+    (work / "app" / "main.py").write_text("print('hi')\n")
     git(work, "add", ".")
     git(work, "commit", "-m", "initial")
     git(work, "push", "origin", "main")

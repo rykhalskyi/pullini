@@ -11,6 +11,7 @@ from django.core.management import call_command
 from django.utils import timezone
 
 from pullini.core.health import collect_status
+from pullini.projects import git
 from pullini.projects.git import git_env
 from pullini.projects.models import SyncStatus
 from pullini.projects.sync import (
@@ -34,6 +35,51 @@ def test_sync_clones_repository(project):
     assert state.last_success_at is not None
     assert (repo / ".git").is_dir()
     assert (repo / "docs" / "index.md").read_text() == "# Home\n"
+
+
+def test_sync_uses_sparse_checkout(project):
+    sync_project(project, force=True)
+
+    repo = repository_path(project)
+    assert (repo / "docs" / "index.md").exists()
+    # Only the configured docs folder is checked out, not the rest of the repo.
+    assert not (repo / "app").exists()
+    assert git.is_sparse(repo)
+
+
+def test_sync_falls_back_to_full_clone_when_filter_unsupported(project, monkeypatch):
+    real_run_git = git.run_git
+
+    def flaky(*args, **kwargs):
+        if args and args[0] == "clone" and "--filter=blob:none" in args:
+            raise git.GitError("server does not support filter")
+        return real_run_git(*args, **kwargs)
+
+    monkeypatch.setattr(git, "run_git", flaky)
+
+    state = sync_project(project, force=True)
+
+    repo = repository_path(project)
+    assert state.status == SyncStatus.OK
+    assert (repo / "docs" / "index.md").exists()
+    # The whole branch is present after the fallback clone.
+    assert (repo / "app" / "main.py").exists()
+    assert not git.is_sparse(repo)
+
+
+def test_sparse_checkout_follows_docs_folder(project, remote_repo):
+    sync_project(project, force=True)
+
+    remote_repo.write("guides/start.md", "# Start\n")
+    project.docs_folder = "guides"
+    project.save()
+
+    sync_project(project, force=True)
+
+    repo = repository_path(project)
+    assert (repo / "guides" / "start.md").exists()
+    assert not (repo / "docs").exists()
+    assert not (repo / "app").exists()
 
 
 def test_sync_detects_new_commit(project, remote_repo):

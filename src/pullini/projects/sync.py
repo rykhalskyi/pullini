@@ -70,13 +70,17 @@ def is_due(project: Project, state: ProjectSyncState, *, now=None) -> bool:
 def sync_repository(project: Project) -> str:
     """Clone or update the project's working tree; return the checked-out commit."""
     dest = repository_path(project)
+    sparse_path = project.docs_folder or None
     if git.is_git_repository(dest) and git.current_branch(dest) == project.branch:
         git.fetch_and_reset(project.branch, dest)
+        if sparse_path and git.is_sparse(dest):
+            # Keep the checked-out folder in sync with the project's configuration.
+            git.sparse_checkout_set(dest, sparse_path)
     else:
         if dest.exists():
             shutil.rmtree(dest)
         dest.parent.mkdir(parents=True, exist_ok=True)
-        git.clone(project.repo_url, project.branch, dest)
+        git.clone(project.repo_url, project.branch, dest, sparse_path=sparse_path)
     return git.current_commit(dest)
 
 
