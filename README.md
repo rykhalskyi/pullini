@@ -96,6 +96,19 @@ Manifests live in [`k8s/`](k8s/). Create the Secret from
 [`k8s/secret.example.yaml`](k8s/secret.example.yaml) with your secret tooling,
 then apply via Flux (`k8s/flux.yaml`) or `kubectl apply -k k8s`.
 
+The entrypoint applies migrations, collects static files, and then seeds the
+single admin user when `DJANGO_SUPERUSER_PASSWORD` is present. Put
+`DJANGO_SUPERUSER_USERNAME`, `DJANGO_SUPERUSER_EMAIL`, and
+`DJANGO_SUPERUSER_PASSWORD` in the Secret and the first boot creates the admin
+user if it does not exist yet (an existing user is left untouched). To rotate
+the password later, update the Secret and run
+`python manage.py changepassword <user>` in the container, or delete the user
+and restart.
+
+The container image is built and pushed to
+`ghcr.io/rykhalskyi/pullini:sha-<commit>` by the `image` job in
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) on every push to `main`.
+
 ## Configuration
 
 All configuration is environment-driven; see [`.env.example`](.env.example).

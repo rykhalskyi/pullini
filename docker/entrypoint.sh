@@ -17,6 +17,28 @@ if [ "${PULLINI_SKIP_BOOTSTRAP:-false}" != "true" ]; then
   done
 
   python manage.py collectstatic --noinput
+
+  # Seed the single admin user (HLD V1 principle 3) from the environment.
+  # Idempotent: an existing user is left untouched, so this is safe on every
+  # start. Credentials live in the platform's secret store, never in the image.
+  if [ -n "${DJANGO_SUPERUSER_PASSWORD:-}" ]; then
+    python manage.py shell -c "
+import os
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
+if User.objects.filter(username=username).exists():
+    print(f'superuser {username!r} already exists')
+else:
+    User.objects.create_superuser(
+        username,
+        os.environ.get('DJANGO_SUPERUSER_EMAIL', ''),
+        os.environ['DJANGO_SUPERUSER_PASSWORD'],
+    )
+    print(f'created superuser {username!r}')
+"
+  fi
 fi
 
 exec "$@"
