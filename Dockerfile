@@ -23,11 +23,20 @@ FROM ghcr.io/astral-sh/uv:0.12.15 AS uv
 # ---------------------------------------------------------------------------
 FROM python:3.14-slim AS runtime
 
+# Build metadata, surfaced at /healthz (staff) so you can tell which commit is
+# running. Pass it in CI: --build-arg PULLINI_GIT_SHA=<git sha>.
+ARG PULLINI_GIT_SHA=""
+
+LABEL org.opencontainers.image.title="pullini" \
+      org.opencontainers.image.source="https://github.com/rykhalskyi/pullini" \
+      org.opencontainers.image.revision="${PULLINI_GIT_SHA}"
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
-    PATH="/app/.venv/bin:$PATH"
+    PATH="/app/.venv/bin:$PATH" \
+    PULLINI_GIT_SHA="${PULLINI_GIT_SHA}"
 
 # git is required for project synchronization (E3) and the health check.
 RUN apt-get update \

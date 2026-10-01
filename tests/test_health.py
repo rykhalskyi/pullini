@@ -37,6 +37,7 @@ def test_healthz_redacts_details_for_anonymous(client, settings):
     payload = client.get(reverse("healthz")).json()
 
     assert payload["checks"]["data_dir"]["detail"] in {"ok", "unavailable"}
+    assert "version" not in payload
 
 
 def test_healthz_shows_details_to_staff(client, settings):
@@ -47,6 +48,8 @@ def test_healthz_shows_details_to_staff(client, settings):
     payload = client.get(reverse("healthz")).json()
 
     assert payload["checks"]["data_dir"]["detail"] == str(settings.DATA_DIR)
+    assert payload["version"]
+    assert payload["revision"] == (settings.GIT_REVISION or None)
 
 
 def test_home_renders_design_shell(client):

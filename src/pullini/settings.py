@@ -12,6 +12,8 @@ from pathlib import Path
 import environ
 from django.core.exceptions import ImproperlyConfigured
 
+from pullini import __version__
+
 # repo root: <root>/src/pullini/settings.py -> parents[2]
 BASE_DIR = Path(__file__).resolve().parents[2]
 
@@ -57,6 +59,13 @@ if not DEBUG and (SECRET_KEY in _INSECURE_SECRET_KEYS or len(SECRET_KEY) < 32):
 DATA_DIR = Path(env("DATA_DIR")).resolve()
 DATABASE_DIR = DATA_DIR / "database"
 REPOSITORIES_DIR = DATA_DIR / "repositories"
+
+# ---------------------------------------------------------------------------
+# Build metadata. APP_VERSION comes from the package; GIT_REVISION is baked in
+# at image build time (Dockerfile ARG -> PULLINI_GIT_SHA). Reported by /healthz.
+# ---------------------------------------------------------------------------
+APP_VERSION = __version__
+GIT_REVISION = env("PULLINI_GIT_SHA", default="")
 
 # ---------------------------------------------------------------------------
 # Applications

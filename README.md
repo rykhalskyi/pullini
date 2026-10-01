@@ -105,9 +105,12 @@ the password later, update the Secret and run
 `python manage.py changepassword <user>` in the container, or delete the user
 and restart.
 
-The container image is built and pushed to
-`ghcr.io/rykhalskyi/pullini:sha-<commit>` by the `image` job in
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) on every push to `main`.
+The container image is built on demand by the
+[`Build image`](.github/workflows/build-image.yml) workflow (Actions → **Build
+image** → **Run workflow**). It pushes
+`ghcr.io/rykhalskyi/pullini:sha-<commit>` (plus `latest` and an optional extra
+tag) and stamps the commit into the image. Run `/healthz` as staff to see the
+running `version` and `revision`.
 
 ## Configuration
 

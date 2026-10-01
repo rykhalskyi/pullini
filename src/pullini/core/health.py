@@ -86,12 +86,17 @@ def collect_status(*, detailed: bool = True) -> dict[str, object]:
             name: {"ok": check.ok, "detail": "ok" if check.ok else "unavailable"}
             for name, check in checks.items()
         }
-    return {
+    result = {
         "status": "healthy" if healthy else "unhealthy",
         "checks": payload,
         "projects": _project_counts(),
         "last_sync": _last_sync(),
     }
+    if detailed:
+        # Build identity, only for staff: which app version + commit is running.
+        result["version"] = settings.APP_VERSION
+        result["revision"] = settings.GIT_REVISION or None
+    return result
 
 
 def _last_sync() -> str | None:
