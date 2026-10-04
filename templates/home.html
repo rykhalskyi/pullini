@@ -50,6 +50,11 @@
         <span>last sync:</span>
         <span class="text-navy">{% if status.last_sync %}{{ status.last_sync }}{% else %}-{% endif %}</span>
       </li>
+      <li class="flex items-center gap-2">
+        <span class="size-1.5 rounded-full bg-line" aria-hidden="true"></span>
+        <span>version:</span>
+        <span class="text-navy">{% if status.version %}{{ status.version }}{% else %}-{% endif %}</span>
+      </li>
     </ul>
   </div>
 </section>

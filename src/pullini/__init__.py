@@ -1,3 +1,3 @@
 """Pullini - a read-only Git-backed wiki browser."""
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
