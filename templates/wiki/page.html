@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}{{ page.title }} · {{ project.name }}{% endblock %}
 {% block content %}
 <nav class="text-sm text-ink/70" aria-label="Breadcrumb">
@@ -28,4 +29,11 @@
   </p>
   <div class="wiki-content mt-8">{{ page.html|safe }}</div>
 </article>
+{% endblock %}
+
+{% block scripts %}
+{% if 'class="mermaid"' in page.html %}
+<script src="{% static 'js/vendor/mermaid.min.js' %}" defer></script>
+<script src="{% static 'js/mermaid-render.js' %}" defer></script>
+{% endif %}
 {% endblock %}

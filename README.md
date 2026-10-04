@@ -34,7 +34,8 @@ Requires [uv](https://docs.astral.sh/uv/) and Node.js (for Tailwind).
 cp .env.example .env
 uv sync
 npm install
-npm run build:css          # or: npm run watch:css
+npm run build              # Tailwind CSS + vendored JS (Mermaid)
+# npm run watch:css        # Tailwind only, while editing styles
 uv run python manage.py migrate
 uv run python manage.py createsuperuser
 uv run python manage.py runserver

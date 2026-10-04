@@ -12,8 +12,50 @@ import re
 
 import markdown as markdown_lib
 import nh3
+from markdown.extensions import Extension
+from markdown.postprocessors import Postprocessor
 
-MARKDOWN_EXTENSIONS = ["fenced_code", "tables", "attr_list", "sane_lists", "toc"]
+
+class _MermaidPostprocessor(Postprocessor):
+    """Turn mermaid fenced blocks into ``<div class="mermaid">`` containers.
+
+    Run as a postprocessor because ``fenced_code`` stashes its HTML in
+    ``htmlStash``; the real ``<pre><code>`` only appears after serialization.
+    The diagram source stays as escaped text and is rendered client-side.
+    Mermaid ``%%{ ... }%%`` directives are dropped: they can override the
+    security level that the front-end initializer sets.
+    """
+
+    _BLOCK_RE = re.compile(
+        r'<pre[^>]*><code class="[^"]*\blanguage-mermaid\b[^"]*"[^>]*>(.*?)</code></pre>',
+        re.DOTALL,
+    )
+    _DIRECTIVE_RE = re.compile(r"^\s*%%\{.*\}%%\s*$")
+
+    def run(self, text: str) -> str:
+        def replace(match: re.Match[str]) -> str:
+            source = match.group(1)
+            body = "\n".join(
+                line for line in source.split("\n") if not self._DIRECTIVE_RE.match(line)
+            )
+            return f'<div class="mermaid">{body}</div>'
+
+        return self._BLOCK_RE.sub(replace, text)
+
+
+class _MermaidExtension(Extension):
+    def extendMarkdown(self, md) -> None:  # noqa: N802 - markdown API name
+        md.postprocessors.register(_MermaidPostprocessor(md), "mermaid", 10)
+
+
+MARKDOWN_EXTENSIONS = [
+    "fenced_code",
+    "tables",
+    "attr_list",
+    "sane_lists",
+    "toc",
+    _MermaidExtension(),
+]
 MARKDOWN_SUFFIXES = (".md", ".markdown")
 
 # Rendered Markdown is untrusted: it comes from third-party Git repositories.

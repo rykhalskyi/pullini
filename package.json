@@ -5,10 +5,13 @@
   "description": "Front-end asset pipeline for Pullini (Tailwind CSS).",
   "scripts": {
     "build:css": "tailwindcss -i ./assets/css/input.css -o ./static/css/app.css",
+    "build:js": "node ./scripts/vendor-js.mjs",
+    "build": "npm run build:css && npm run build:js",
     "watch:css": "tailwindcss -i ./assets/css/input.css -o ./static/css/app.css --watch"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.0",
+    "mermaid": "^11.17.2",
     "tailwindcss": "^4.1.0"
   }
 }

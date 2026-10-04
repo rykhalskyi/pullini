@@ -67,6 +67,38 @@ def test_render_keeps_safe_markup():
     assert "<table>" in html
 
 
+def test_render_converts_mermaid_fences_to_containers():
+    html = markup.render("```mermaid\ngraph TD\n  A-->B\n```\n")
+
+    assert '<div class="mermaid">' in html
+    assert "graph TD" in html
+    assert "language-mermaid" not in html
+
+
+def test_render_keeps_non_mermaid_fences_as_code():
+    html = markup.render("```python\nprint(1)\n```\n")
+
+    assert '<pre><code class="language-python">' in html
+    assert '<div class="mermaid">' not in html
+
+
+def test_render_mermaid_source_is_inert():
+    html = markup.render("```mermaid\ngraph TD\n  A[<script>alert(1)</script>]\n```\n")
+
+    assert "<script" not in html
+    assert '<div class="mermaid">' in html
+
+
+def test_render_mermaid_drops_config_directives():
+    html = markup.render(
+        '```mermaid\n%%{init: {"securityLevel": "loose"}}%%\ngraph TD\n  A-->B\n```\n'
+    )
+
+    assert "%%{" not in html
+    assert "securityLevel" not in html
+    assert "graph TD" in html
+
+
 def test_plain_text_strips_tags():
     assert markup.to_plain_text("<h1>Hi</h1>\n<p>There</p>") == "Hi There"
 
@@ -209,6 +241,20 @@ def test_wiki_page_renders_code_blocks_with_copy_script(client, project, remote_
 
     assert b"<pre>" in response.content
     assert b"js/copy-code.js" in response.content
+    assert b"js/mermaid-render.js" not in response.content
+
+
+def test_wiki_page_loads_mermaid_only_for_diagram_pages(client, project, remote_repo):
+    remote_repo.write("docs/diagram.md", "# Diagram\n\n```mermaid\ngraph TD\n  A-->B\n```\n")
+    sync_project(project, force=True)
+    page = project.pages.get(path="diagram.md")
+
+    response = client.get(reverse("wiki:page", args=[project.slug, page.url_path]))
+
+    assert response.status_code == 200
+    assert b'class="mermaid"' in response.content
+    assert b"js/vendor/mermaid.min.js" in response.content
+    assert b"js/mermaid-render.js" in response.content
 
 
 def test_wiki_page_unknown_is_404(client, project):

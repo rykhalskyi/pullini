@@ -153,6 +153,15 @@ html {
   color: inherit;
   padding: 0;
 }
+.wiki-content .mermaid {
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
+.wiki-content .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
 .wiki-content table {
   border-collapse: collapse;
   width: 100%;
