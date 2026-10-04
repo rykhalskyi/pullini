@@ -10,3 +10,4 @@
 ## [2026-09-30] update | Added light/dark theme toggle with token-based dark mode; temporary recolored dark wordmark
 ## [2026-09-30] ticket | E5 — Search implemented
 ## [2026-09-30] update | E5: Postgres backend falls back to substring match on title/path/project name; verified against PostgreSQL
+## [2026-10-04] epic | E6 — User Artifacts & Agent Connector (MCP)

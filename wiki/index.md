@@ -12,6 +12,7 @@
 - [epics/epic-03-git-synchronization](pages/epics/epic-03-git-synchronization.md) — E3 — Git sync: shallow per-project clones, scheduled + manual refresh, sync state, resilient failures.
 - [epics/epic-04-wiki-generation](pages/epics/epic-04-wiki-generation.md) — E4 — Markdown docs from the clone become read-only pages with tree/recent navigation.
 - [epics/epic-05-search](pages/epics/epic-05-search.md) — E5 — Search: project and global scopes, contextual snippets, db-native backends (Postgres FTS).
+- [epics/epic-06-user-artifacts-and-mcp](pages/epics/epic-06-user-artifacts-and-mcp.md) — E6 — User accounts, personal access tokens, user-owned Markdown artifacts, the pullini-mcp connector, and favorites.
 
 ## Specs
 - [specs/pullini-v1-hld](pages/specs/pullini-v1-hld.md) — V1 high-level design for Pullini, a read-only Git-backed wiki browser (Python/Django monolith).
