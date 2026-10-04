@@ -99,6 +99,29 @@ def test_render_mermaid_drops_config_directives():
     assert "graph TD" in html
 
 
+def test_render_mermaid_drops_multiline_config_directives():
+    html = markup.render(
+        '```mermaid\n%%{init: {\n  "securityLevel": "loose"\n}}%%\ngraph TD\n  A-->B\n```\n'
+    )
+
+    assert "%%{" not in html
+    assert "}%%" not in html
+    assert "securityLevel" not in html
+    assert "graph TD" in html
+
+
+def test_render_mermaid_fence_is_case_insensitive():
+    html = markup.render("```Mermaid\ngraph TD\n  A-->B\n```\n")
+
+    assert '<div class="mermaid">' in html
+    assert "language-Mermaid" not in html
+
+
+def test_has_mermaid_detects_rendered_containers():
+    assert markup.has_mermaid(markup.render("```mermaid\ngraph TD\n```\n"))
+    assert not markup.has_mermaid(markup.render("```python\nprint(1)\n```\n"))
+
+
 def test_plain_text_strips_tags():
     assert markup.to_plain_text("<h1>Hi</h1>\n<p>There</p>") == "Hi There"
 

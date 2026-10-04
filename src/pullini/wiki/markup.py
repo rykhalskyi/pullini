@@ -15,6 +15,8 @@ import nh3
 from markdown.extensions import Extension
 from markdown.postprocessors import Postprocessor
 
+MERMAID_CLASS = "mermaid"
+
 
 class _MermaidPostprocessor(Postprocessor):
     """Turn mermaid fenced blocks into ``<div class="mermaid">`` containers.
@@ -23,22 +25,20 @@ class _MermaidPostprocessor(Postprocessor):
     ``htmlStash``; the real ``<pre><code>`` only appears after serialization.
     The diagram source stays as escaped text and is rendered client-side.
     Mermaid ``%%{ ... }%%`` directives are dropped: they can override the
-    security level that the front-end initializer sets.
+    security level that the front-end initializer sets. Directives may span
+    multiple lines, so they are matched as a block rather than per line.
     """
 
     _BLOCK_RE = re.compile(
         r'<pre[^>]*><code class="[^"]*\blanguage-mermaid\b[^"]*"[^>]*>(.*?)</code></pre>',
-        re.DOTALL,
+        re.DOTALL | re.IGNORECASE,
     )
-    _DIRECTIVE_RE = re.compile(r"^\s*%%\{.*\}%%\s*$")
+    _DIRECTIVE_RE = re.compile(r"%%\{.*?\}%%", re.DOTALL)
 
     def run(self, text: str) -> str:
         def replace(match: re.Match[str]) -> str:
-            source = match.group(1)
-            body = "\n".join(
-                line for line in source.split("\n") if not self._DIRECTIVE_RE.match(line)
-            )
-            return f'<div class="mermaid">{body}</div>'
+            source = self._DIRECTIVE_RE.sub("", match.group(1)).strip()
+            return f'<div class="{MERMAID_CLASS}">{source}</div>'
 
         return self._BLOCK_RE.sub(replace, text)
 
@@ -128,6 +128,11 @@ def sanitize(html: str) -> str:
 
 def render(content: str) -> str:
     return sanitize(markdown_lib.markdown(content, extensions=MARKDOWN_EXTENSIONS))
+
+
+def has_mermaid(html: str) -> bool:
+    """True when rendered HTML contains a Mermaid container to initialize."""
+    return f'class="{MERMAID_CLASS}"' in html
 
 
 def to_plain_text(html: str) -> str:

@@ -53,7 +53,7 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci
-      - run: npm run build:css
+      - run: npm run build
       - if: matrix.database == 'postgres'
         run: echo "DATABASE_URL=postgres://pullini:pullini@localhost:5432/pullini" >> "$GITHUB_ENV"
       - run: uv run python manage.py collectstatic --noinput

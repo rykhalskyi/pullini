@@ -32,7 +32,7 @@
 {% endblock %}
 
 {% block scripts %}
-{% if 'class="mermaid"' in page.html %}
+{% if page.has_mermaid %}
 <script src="{% static 'js/vendor/mermaid.min.js' %}" defer></script>
 <script src="{% static 'js/mermaid-render.js' %}" defer></script>
 {% endif %}
