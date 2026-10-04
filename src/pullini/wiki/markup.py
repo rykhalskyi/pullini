@@ -12,8 +12,50 @@ import re
 
 import markdown as markdown_lib
 import nh3
+from markdown.extensions import Extension
+from markdown.postprocessors import Postprocessor
 
-MARKDOWN_EXTENSIONS = ["fenced_code", "tables", "attr_list", "sane_lists", "toc"]
+MERMAID_CLASS = "mermaid"
+
+
+class _MermaidPostprocessor(Postprocessor):
+    """Turn mermaid fenced blocks into ``<div class="mermaid">`` containers.
+
+    Run as a postprocessor because ``fenced_code`` stashes its HTML in
+    ``htmlStash``; the real ``<pre><code>`` only appears after serialization.
+    The diagram source stays as escaped text and is rendered client-side.
+    Mermaid ``%%{ ... }%%`` directives are dropped: they can override the
+    security level that the front-end initializer sets. Directives may span
+    multiple lines, so they are matched as a block rather than per line.
+    """
+
+    _BLOCK_RE = re.compile(
+        r'<pre[^>]*><code class="[^"]*\blanguage-mermaid\b[^"]*"[^>]*>(.*?)</code></pre>',
+        re.DOTALL | re.IGNORECASE,
+    )
+    _DIRECTIVE_RE = re.compile(r"%%\{.*?\}%%", re.DOTALL)
+
+    def run(self, text: str) -> str:
+        def replace(match: re.Match[str]) -> str:
+            source = self._DIRECTIVE_RE.sub("", match.group(1)).strip()
+            return f'<div class="{MERMAID_CLASS}">{source}</div>'
+
+        return self._BLOCK_RE.sub(replace, text)
+
+
+class _MermaidExtension(Extension):
+    def extendMarkdown(self, md) -> None:  # noqa: N802 - markdown API name
+        md.postprocessors.register(_MermaidPostprocessor(md), "mermaid", 10)
+
+
+MARKDOWN_EXTENSIONS = [
+    "fenced_code",
+    "tables",
+    "attr_list",
+    "sane_lists",
+    "toc",
+    _MermaidExtension(),
+]
 MARKDOWN_SUFFIXES = (".md", ".markdown")
 
 # Rendered Markdown is untrusted: it comes from third-party Git repositories.
@@ -86,6 +128,11 @@ def sanitize(html: str) -> str:
 
 def render(content: str) -> str:
     return sanitize(markdown_lib.markdown(content, extensions=MARKDOWN_EXTENSIONS))
+
+
+def has_mermaid(html: str) -> bool:
+    """True when rendered HTML contains a Mermaid container to initialize."""
+    return f'class="{MERMAID_CLASS}"' in html
 
 
 def to_plain_text(html: str) -> str:

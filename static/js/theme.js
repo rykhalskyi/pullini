@@ -10,6 +10,7 @@
     } catch (error) {
       /* storage unavailable; ignore */
     }
+    document.dispatchEvent(new CustomEvent("themechange", { detail: { dark: dark } }));
   }
 
   document.addEventListener("DOMContentLoaded", function () {

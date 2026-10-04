@@ -221,6 +221,7 @@ __marimo__/
 /data/
 /staticfiles/
 static/css/app.css
+static/js/vendor/
 
 # Node / Tailwind
 node_modules/

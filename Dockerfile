@@ -11,7 +11,8 @@ RUN npm ci
 COPY assets ./assets
 COPY templates ./templates
 COPY src ./src
-RUN npm run build:css
+COPY scripts ./scripts
+RUN npm run build
 
 # ---------------------------------------------------------------------------
 # Stage 2 — uv binary
@@ -52,6 +53,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY . .
 COPY --from=assets /app/static/css/app.css ./static/css/app.css
+COPY --from=assets /app/static/js/vendor ./static/js/vendor
 RUN uv sync --frozen --no-dev
 
 RUN mkdir -p /data \

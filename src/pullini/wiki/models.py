@@ -9,6 +9,7 @@ from __future__ import annotations
 from django.db import models
 
 from pullini.projects.models import Project
+from pullini.wiki import markup
 
 
 class Page(models.Model):
@@ -44,3 +45,7 @@ class Page(models.Model):
     @property
     def depth(self) -> int:
         return self.path.count("/")
+
+    @property
+    def has_mermaid(self) -> bool:
+        return markup.has_mermaid(self.html)

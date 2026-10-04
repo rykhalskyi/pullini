@@ -1,6 +1,6 @@
 [project]
 name = "pullini"
-version = "0.1.0"
+version = "0.2.0"
 description = "A read-only Git-backed wiki browser."
 readme = "README.md"
 authors = [
