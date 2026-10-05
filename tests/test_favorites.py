@@ -21,8 +21,12 @@ def make_user(username: str = "reader"):
     return get_user_model().objects.create_user(username=username, password="s3cret-pass")
 
 
-def make_project(name: str = "Payments") -> Project:
-    return Project.objects.create(name=name, repo_url="https://git.example.com/payments.git")
+def make_project(name: str = "Payments", *, enabled: bool = True) -> Project:
+    return Project.objects.create(
+        name=name,
+        repo_url="https://git.example.com/payments.git",
+        enabled=enabled,
+    )
 
 
 def make_page(project: Project, path: str = "guide/setup.md", **kwargs) -> Page:
@@ -154,3 +158,57 @@ def test_wiki_page_shows_unfavorited_star(client):
 
     assert b"Favorited" not in content
     assert b"Favorite" in content
+
+
+def test_toggle_rejects_page_in_hidden_project(client):
+    user = make_user()
+    project = make_project(enabled=False)
+    page = make_page(project, path="secret.md", title="Secret")
+    client.force_login(user)
+
+    response = client.post(reverse("favorites:toggle", args=[page.pk]))
+
+    assert response.status_code == 404
+    assert not Favorite.objects.filter(user=user, page=page).exists()
+
+
+def test_favorites_list_hides_pages_from_disabled_projects(client):
+    user = make_user()
+    project = make_project()
+    page = make_page(project, path="index.md", title="Hidden Later")
+    Favorite.objects.create(user=user, page=page)
+    project.enabled = False
+    project.save(update_fields=["enabled"])
+    client.force_login(user)
+
+    content = client.get(reverse("favorites:list")).content
+
+    assert b"Hidden Later" not in content
+
+
+def test_home_hides_favorites_from_disabled_projects(client):
+    user = make_user()
+    project = make_project()
+    page = make_page(project, path="index.md", title="Hidden Later")
+    Favorite.objects.create(user=user, page=page)
+    project.enabled = False
+    project.save(update_fields=["enabled"])
+    client.force_login(user)
+
+    content = client.get(reverse("home")).content
+
+    assert b"Hidden Later" not in content
+
+
+def test_staff_can_favorite_page_in_disabled_project(client):
+    user = get_user_model().objects.create_user(
+        username="admin", password="s3cret-pass", is_staff=True
+    )
+    project = make_project(enabled=False)
+    page = make_page(project, path="secret.md", title="Secret")
+    client.force_login(user)
+
+    response = client.post(reverse("favorites:toggle", args=[page.pk]))
+
+    assert response.status_code == 302
+    assert Favorite.objects.filter(user=user, page=page).exists()

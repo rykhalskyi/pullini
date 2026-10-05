@@ -5,6 +5,7 @@ from __future__ import annotations
 from django.db.models import QuerySet
 
 from pullini.favorites.models import Favorite
+from pullini.projects.access import visible_projects
 
 HOME_FAVORITES_LIMIT = 6
 
@@ -14,7 +15,10 @@ def recent_favorites(user, limit: int = HOME_FAVORITES_LIMIT) -> QuerySet[Favori
     if not user.is_authenticated:
         return Favorite.objects.none()
     return (
-        Favorite.objects.filter(user=user)
+        Favorite.objects.filter(
+            user=user,
+            page__project__in=visible_projects(user),
+        )
         .select_related("page", "page__project")
         .order_by("-created_at")[:limit]
     )

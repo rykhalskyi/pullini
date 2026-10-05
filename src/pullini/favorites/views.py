@@ -10,6 +10,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from pullini.favorites.models import Favorite
+from pullini.projects.access import visible_projects
 from pullini.wiki.models import Page
 
 
@@ -28,7 +29,10 @@ def _next_url(request: HttpRequest) -> str:
 @login_required
 def favorites_list(request: HttpRequest) -> HttpResponse:
     favorites = (
-        Favorite.objects.filter(user=request.user)
+        Favorite.objects.filter(
+            user=request.user,
+            page__project__in=visible_projects(request.user),
+        )
         .select_related("page", "page__project")
         .order_by("-created_at")
     )
@@ -38,7 +42,11 @@ def favorites_list(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_POST
 def favorite_toggle(request: HttpRequest, page_id: int) -> HttpResponse:
-    page = get_object_or_404(Page, pk=page_id)
+    page = get_object_or_404(
+        Page,
+        pk=page_id,
+        project__in=visible_projects(request.user),
+    )
     favorite, created = Favorite.objects.get_or_create(user=request.user, page=page)
     if not created:
         favorite.delete()

@@ -5,7 +5,7 @@ from __future__ import annotations
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 
-from pullini.projects.views import visible_projects
+from pullini.projects.access import visible_projects
 from pullini.search.services import search_pages
 
 

@@ -6,7 +6,7 @@ from django.http import FileResponse, Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 
 from pullini.favorites.services import is_favorite
-from pullini.projects.views import visible_projects
+from pullini.projects.access import visible_projects
 from pullini.wiki.generation import docs_path
 from pullini.wiki.models import Page
 
