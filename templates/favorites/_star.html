@@ -1,0 +1,31 @@
+<form
+  id="favorite-star-{{ page.id }}"
+  method="post"
+  action="{% url 'favorites:toggle' page.id %}"
+  class="inline"
+  hx-post="{% url 'favorites:toggle' page.id %}"
+  hx-target="#favorite-star-{{ page.id }}"
+  hx-swap="outerHTML"
+>
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next|default:request.path }}" />
+  {% if is_favorite %}
+  <button
+    type="submit"
+    aria-pressed="true"
+    title="Remove from favorites"
+    class="inline-flex items-center gap-1.5 rounded-md border border-line bg-panel px-3 py-1.5 text-sm font-medium text-amber-500 transition-colors hover:bg-soft"
+  >
+    <span aria-hidden="true">&#9733;</span> Favorited
+  </button>
+  {% else %}
+  <button
+    type="submit"
+    aria-pressed="false"
+    title="Add to favorites"
+    class="inline-flex items-center gap-1.5 rounded-md border border-line bg-panel px-3 py-1.5 text-sm font-medium text-ink/70 transition-colors hover:bg-soft hover:text-amber-500"
+  >
+    <span aria-hidden="true">&#9734;</span> Favorite
+  </button>
+  {% endif %}
+</form>

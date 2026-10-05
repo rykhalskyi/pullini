@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Logged out · Pullini{% endblock %}
+{% block content %}
+<div class="mx-auto w-full max-w-sm text-center">
+  <h1 class="text-2xl font-bold tracking-tight text-navy">Logged out</h1>
+  <p class="mt-4 text-sm text-ink">You have been logged out.</p>
+  <a
+    href="{% url 'login' %}"
+    class="mt-6 inline-block rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90"
+    >Log in again</a
+  >
+</div>
+{% endblock %}

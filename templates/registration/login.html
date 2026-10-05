@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Log in · Pullini{% endblock %}
+{% block content %}
+<div class="mx-auto w-full max-w-sm">
+  <h1 class="text-2xl font-bold tracking-tight text-navy">Log in</h1>
+  {% if form.errors %}
+  <p class="mt-4 rounded-lg border border-git/40 bg-git/5 px-4 py-2 text-sm text-git">
+    Your username and password did not match. Please try again.
+  </p>
+  {% endif %}
+  <form method="post" class="mt-6 space-y-4">
+    {% csrf_token %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}" />{% endif %}
+    <div>
+      <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-navy"
+        >Username</label
+      >
+      <input
+        type="text"
+        name="{{ form.username.html_name }}"
+        id="{{ form.username.id_for_label }}"
+        autocomplete="username"
+        autofocus
+        required
+        class="mt-1 w-full rounded-md border border-line bg-panel px-3 py-2 text-sm text-navy focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+      />
+    </div>
+    <div>
+      <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-navy"
+        >Password</label
+      >
+      <input
+        type="password"
+        name="{{ form.password.html_name }}"
+        id="{{ form.password.id_for_label }}"
+        autocomplete="current-password"
+        required
+        class="mt-1 w-full rounded-md border border-line bg-panel px-3 py-2 text-sm text-navy focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+      />
+    </div>
+    <button
+      type="submit"
+      class="w-full rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90"
+    >
+      Log in
+    </button>
+  </form>
+  <p class="mt-4 text-xs text-ink/60">Accounts are created by an administrator.</p>
+</div>
+{% endblock %}

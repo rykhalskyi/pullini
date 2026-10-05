@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     "pullini.core",
     "pullini.projects",
     "pullini.wiki",
+    "pullini.favorites",
 ]
 
 MIDDLEWARE = [
@@ -123,7 +124,9 @@ if DATABASES["default"]["ENGINE"] == "django.db.backends.sqlite3":
     DATABASES["default"].setdefault("OPTIONS", {})
     DATABASES["default"]["OPTIONS"].setdefault("timeout", 20)
 
-LOGIN_URL = "/admin/login/"
+LOGIN_URL = "/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

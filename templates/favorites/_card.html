@@ -1,0 +1,12 @@
+<article class="rounded-xl border border-line bg-panel p-5 transition-colors hover:border-brand/40">
+  <p class="text-xs font-medium uppercase tracking-wide text-ink/50">
+    {{ favorite.page.project.name }}
+  </p>
+  <h3 class="mt-1 text-base font-semibold text-navy">
+    <a
+      href="{% url 'wiki:page' favorite.page.project.slug favorite.page.url_path %}"
+      class="hover:text-brand"
+      >{{ favorite.page.title }}</a
+    >
+  </h3>
+</article>

@@ -184,7 +184,7 @@ def test_refresh_requires_login(client, monkeypatch):
     response = client.post(reverse("projects:refresh", args=[project.slug]))
 
     assert response.status_code == 302
-    assert "/admin/login/" in response.url
+    assert "/login/" in response.url
 
 
 def test_refresh_forbidden_for_non_staff(client):

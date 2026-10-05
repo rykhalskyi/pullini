@@ -7,6 +7,7 @@ from django.http import HttpRequest, JsonResponse
 from django.shortcuts import render
 
 from pullini.core.health import collect_status
+from pullini.favorites.services import recent_favorites
 from pullini.projects.models import Project
 
 
@@ -22,6 +23,7 @@ def home(request: HttpRequest):
         {
             "status": collect_status(detailed=_may_view_details(request)),
             "projects": Project.objects.filter(enabled=True),
+            "favorites": recent_favorites(request.user),
         },
     )
 

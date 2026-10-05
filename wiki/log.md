@@ -11,3 +11,7 @@
 ## [2026-09-30] ticket | E5 — Search implemented
 ## [2026-09-30] update | E5: Postgres backend falls back to substring match on title/path/project name; verified against PostgreSQL
 ## [2026-10-04] epic | E6 — User Artifacts & Agent Connector (MCP)
+## [2026-10-05] ticket | T1 — Authorization: accounts, login & logout
+## [2026-10-05] ticket | T2 — Favorites
+## [2026-10-05] ticket | T1 — Authorization: accounts, login & logout implemented
+## [2026-10-05] ticket | T2 — Favorites implemented
