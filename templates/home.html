@@ -1,5 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
+{% if favorites %}
+<section class="mb-12">
+  <h2 class="text-sm font-semibold uppercase tracking-wide text-ink/60">Favorites</h2>
+  <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% for favorite in favorites %}
+      {% include "favorites/_card.html" %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 <section class="flex-1">
   <h2 class="text-sm font-semibold uppercase tracking-wide text-ink/60">Projects</h2>
   <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -85,7 +85,7 @@ The application should not depend on the installation type.
 
 ## 4. Authentication / users
 
-V1 has exactly **one user role: Admin**.
+V1 has two roles: **Admin** (staff) and a non-staff **reader** (D-27).
 
 Admin can:
 
@@ -103,6 +103,9 @@ Admin cannot:
 * Create wiki pages
 * Delete wiki pages
 * Modify Git content through Pullini
+
+A **reader** can log in, browse and search all public documentation, and keep
+per-user state such as favorites. A reader cannot manage projects.
 
 All wiki pages are **public/read-only**.
 

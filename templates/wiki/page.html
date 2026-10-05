@@ -19,7 +19,10 @@
 </nav>
 
 <article class="mt-6 max-w-3xl">
-  <h1 class="text-3xl font-bold tracking-tight text-navy">{{ page.title }}</h1>
+  <div class="flex items-start justify-between gap-4">
+    <h1 class="text-3xl font-bold tracking-tight text-navy">{{ page.title }}</h1>
+    {% include "favorites/_star.html" with page=page is_favorite=is_favorite %}
+  </div>
   <p class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink/60">
     <span class="flex items-center gap-1">
       <span aria-hidden="true" class="text-git">&#9679;</span>

@@ -11,16 +11,9 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
+from pullini.projects.access import visible_projects
 from pullini.projects.models import Project, ProjectSyncState, SyncStatus
 from pullini.projects.sync import sync_project
-
-
-def visible_projects(user):
-    """Enabled projects are public; staff may also see disabled ones."""
-    queryset = Project.objects.all()
-    if user.is_authenticated and user.is_staff:
-        return queryset
-    return queryset.filter(enabled=True)
 
 
 def project_list(request: HttpRequest) -> HttpResponse:

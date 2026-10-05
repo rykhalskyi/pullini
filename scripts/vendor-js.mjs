@@ -5,7 +5,10 @@ import { fileURLToPath } from 'node:url'
 const scriptDir = dirname(fileURLToPath(import.meta.url))
 const rootDir = resolve(scriptDir, '..')
 
-const bundles = [['mermaid/dist/mermaid.min.js', 'static/js/vendor/mermaid.min.js']]
+const bundles = [
+	['mermaid/dist/mermaid.min.js', 'static/js/vendor/mermaid.min.js'],
+	['htmx.org/dist/htmx.min.js', 'static/js/vendor/htmx.min.js'],
+]
 
 for (const [from, to] of bundles) {
 	const source = resolve(rootDir, 'node_modules', from)

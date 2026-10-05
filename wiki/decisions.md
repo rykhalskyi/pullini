@@ -29,3 +29,5 @@ Append-only decision record. The "why" lives here; the full change history lives
 - [2026-10-04] D-25 — The pullini-mcp connector is a local stdio process distributed on PyPI and calls the Pullini host over an authenticated REST API — because it needs no ASGI or OAuth server and reuses the same PAT a future remote endpoint would
 - [2026-10-04] D-26 — Favorites require login and are stored per user — because the accounts added for artifacts give a stable identity and session-only favorites die with the cookie
 - [2026-10-04] D-27 — Pullini gains a non-staff reader/owner role alongside the single admin — because users and agents need accounts without project-management privileges (extends D-03)
+- [2026-10-05] D-28 — Favorites reference the derived Page row (keyed by project+path), so starring survives content updates and cascades away when a page leaves its repository — because generation is idempotent per path and Git stays canonical (extends D-26)
+- [2026-10-05] D-29 — HTMX is vendored under static/js/vendor like mermaid rather than loaded from a CDN — because the app must run without external runtime dependencies

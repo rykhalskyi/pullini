@@ -17,5 +17,9 @@
 ## Specs
 - [specs/pullini-v1-hld](pages/specs/pullini-v1-hld.md) — V1 high-level design for Pullini, a read-only Git-backed wiki browser (Python/Django monolith).
 
+## Tickets
+- [tickets/01-auth-login](pages/tickets/01-auth-login.md) — T1 — reader-facing login/logout and the non-staff reader role that favorites build on.
+- [tickets/02-favorites](pages/tickets/02-favorites.md) — T2 — per-user favorites: star toggle, six most recent on home, and a /favorites/ page.
+
 ## Research
 - [research/design-guidelines](pages/research/design-guidelines.md) — UI/UX design guidelines — tone, color palette, typography, components, and Git visual language.

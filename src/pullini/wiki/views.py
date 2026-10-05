@@ -5,7 +5,8 @@ from __future__ import annotations
 from django.http import FileResponse, Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 
-from pullini.projects.views import visible_projects
+from pullini.favorites.services import is_favorite
+from pullini.projects.access import visible_projects
 from pullini.wiki.generation import docs_path
 from pullini.wiki.models import Page
 
@@ -46,7 +47,12 @@ def wiki_page(request: HttpRequest, slug: str, page_path: str) -> HttpResponse:
     return render(
         request,
         "wiki/page.html",
-        {"project": project, "page": page, "breadcrumbs": _breadcrumbs(page)},
+        {
+            "project": project,
+            "page": page,
+            "breadcrumbs": _breadcrumbs(page),
+            "is_favorite": is_favorite(request.user, page),
+        },
     )
 
 

@@ -28,7 +28,7 @@ Single Python monolith (no microservices in V1). Modules: UI/UX, authentication,
 
 - **Project** — a Git repo + branch + docs folder + update interval.
 - **Sync** — scheduled (default 10 min) or manual pull, then page regen + index update.
-- **Read-only** — one Admin role can manage projects but cannot edit wiki content.
+- **Read-only** — an Admin role manages projects but cannot edit wiki content; non-staff readers log in for per-user state such as favorites.
 - **Search** — first-class, scoped to current project or all projects.
 
 ## Repository layout
@@ -54,5 +54,6 @@ Implemented so far: [E1 — Foundation](epics/epic-01-foundation.md),
 [E2 — Admin & Projects](epics/epic-02-admin-and-projects.md),
 [E3 — Git Synchronization](epics/epic-03-git-synchronization.md),
 [E4 — Wiki Generation](epics/epic-04-wiki-generation.md) and
-[E5 — Search](epics/epic-05-search.md). Subsequent work is tracked in the same
-folder.
+[E5 — Search](epics/epic-05-search.md). [E6 — User Artifacts & Agent Connector](epics/epic-06-user-artifacts-and-mcp.md)
+is in progress (login/accounts and favorites first). Subsequent work is tracked in
+the same folder.
