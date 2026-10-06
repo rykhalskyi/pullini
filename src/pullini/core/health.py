@@ -71,7 +71,8 @@ def collect_status(*, detailed: bool = True) -> dict[str, object]:
     """Aggregate application status. Individual checks never raise.
 
     When ``detailed`` is false the per-check payloads are redacted so public
-    status endpoints do not leak filesystem paths, versions or driver errors.
+    status endpoints do not leak filesystem paths, the running commit or driver
+    errors. The app version is always included.
     """
     checks = {
         "database": check_database(),
@@ -91,10 +92,11 @@ def collect_status(*, detailed: bool = True) -> dict[str, object]:
         "checks": payload,
         "projects": _project_counts(),
         "last_sync": _last_sync(),
+        # The app version is public; it is not sensitive build information.
+        "version": settings.APP_VERSION,
     }
     if detailed:
-        # Build identity, only for staff: which app version + commit is running.
-        result["version"] = settings.APP_VERSION
+        # Build identity, only for staff: the exact running commit.
         result["revision"] = settings.GIT_REVISION or None
     return result
 

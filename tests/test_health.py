@@ -37,7 +37,8 @@ def test_healthz_redacts_details_for_anonymous(client, settings):
     payload = client.get(reverse("healthz")).json()
 
     assert payload["checks"]["data_dir"]["detail"] in {"ok", "unavailable"}
-    assert "version" not in payload
+    assert payload["version"]
+    assert "revision" not in payload
 
 
 def test_healthz_shows_details_to_staff(client, settings):
