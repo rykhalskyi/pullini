@@ -63,8 +63,21 @@ Favorites page.
 
 D-23 PAT over OAuth for agents · D-24 user-owned artifacts with unlisted sharing ·
 D-25 local stdio connector on PyPI · D-26 login-only favorites · D-27 non-staff
-reader role (extends D-03). The deployment server stays WSGI as in D-09.
+reader role (extends D-03) · D-30 hashed tokens with public prefix, no scopes ·
+D-31 per-user artifact slugs frozen on create · D-32 Bearer auth and API-only share
+mutations · D-33 in-repo connector with Trusted Publishing. The deployment server
+stays WSGI as in D-09.
+
+## Tickets
+
+- [T1 — Authorization](../tickets/01-auth-login.md) — implemented
+- [T2 — Favorites](../tickets/02-favorites.md) — implemented
+- [T3 — Personal Access Tokens](../tickets/03-personal-access-tokens.md) — proposed
+- [T4 — Artifacts (model & read-only web)](../tickets/04-artifacts.md) — proposed
+- [T5 — Artifact REST API](../tickets/05-artifact-rest-api.md) — proposed
+- [T6 — pullini-mcp Connector](../tickets/06-pullini-mcp.md) — proposed
 
 ## Outcome
 
-Not started.
+In progress. Accounts, login/logout and favorites shipped. Remaining work is split
+into T3–T6; none started.
