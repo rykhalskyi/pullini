@@ -1,7 +1,7 @@
 ---
 created: 2026-10-08
 type: ticket
-status: proposed
+status: implemented
 summary: T3 — personal access tokens: hashed secrets, a /settings/tokens/ management UI and a @require_token API decorator.
 ---
 
@@ -55,5 +55,20 @@ authentication. Extends D-27.
 
 ## Outcome
 
-Not started. Planned: `pullini.accounts` with `PersonalAccessToken`, `/settings/tokens/`
-UI and `@require_token`, verified by `tests/test_tokens.py`.
+Shipped. New `pullini.accounts` app:
+- `PersonalAccessToken(user, name, prefix, token_hash, created_at, expires_at,
+  last_used_at, revoked_at)` with `is_valid` / `revoke` (migration `0001_initial`).
+- `pullini/accounts/tokens.py`: `pln_<8 hex>_<43 urlsafe>` secrets, stored as a
+  public prefix + SHA-256 hash (D-30); `create_for_user`, `authenticate` (prefix
+  lookup + `compare_digest`), `touch_last_used`.
+- `pullini/accounts/auth.py`: `@require_token` bearer decorator sets
+  `request.user` / `request.token`, else `401` (D-32).
+- `/settings/tokens/` list + create (optional expiry in days) + revoke, secret
+  shown once via a session flash; "Tokens" link in the account nav.
+- `templates/accounts/tokens.html`; admin registration.
+
+Verification: `uv run pytest` → 151 passed, 1 skipped (`tests/test_tokens.py`, 21
+tests); `ruff check`/`format` clean; `manage.py check` and
+`makemigrations --check` clean. `uv.lock`'s root version was re-synced from its
+stale 0.3.0 to the pyproject 0.5.0 by `uv run`.
+

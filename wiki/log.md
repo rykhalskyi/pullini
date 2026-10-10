@@ -19,3 +19,4 @@
 ## [2026-10-08] ticket | T4 — Artifacts (model & read-only web)
 ## [2026-10-08] ticket | T5 — Artifact REST API
 ## [2026-10-08] ticket | T6 — pullini-mcp Connector
+## [2026-10-08] update | T3 — Personal Access Tokens implemented
