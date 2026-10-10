@@ -15,3 +15,8 @@
 ## [2026-10-05] ticket | T2 — Favorites
 ## [2026-10-05] ticket | T1 — Authorization: accounts, login & logout implemented
 ## [2026-10-05] ticket | T2 — Favorites implemented
+## [2026-10-08] ticket | T3 — Personal Access Tokens
+## [2026-10-08] ticket | T4 — Artifacts (model & read-only web)
+## [2026-10-08] ticket | T5 — Artifact REST API
+## [2026-10-08] ticket | T6 — pullini-mcp Connector
+## [2026-10-08] update | T3 — Personal Access Tokens implemented

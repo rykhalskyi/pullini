@@ -20,6 +20,10 @@
 ## Tickets
 - [tickets/01-auth-login](pages/tickets/01-auth-login.md) — T1 — reader-facing login/logout and the non-staff reader role that favorites build on.
 - [tickets/02-favorites](pages/tickets/02-favorites.md) — T2 — per-user favorites: star toggle, six most recent on home, and a /favorites/ page.
+- [tickets/03-personal-access-tokens](pages/tickets/03-personal-access-tokens.md) — T3 — personal access tokens: hashed secrets, a /settings/tokens/ management UI and a @require_token API decorator.
+- [tickets/04-artifacts](pages/tickets/04-artifacts.md) — T4 — user-owned Markdown artifacts: model, read-only list/detail pages, unlisted share links and the Artifacts nav entry.
+- [tickets/05-artifact-rest-api](pages/tickets/05-artifact-rest-api.md) — T5 — artifact REST API: plain Django JSON views under /api/ authenticated with a PAT Bearer token.
+- [tickets/06-pullini-mcp](pages/tickets/06-pullini-mcp.md) — T6 — pullini-mcp: a local stdio FastMCP connector on PyPI that calls the artifact REST API with a PAT.
 
 ## Research
 - [research/design-guidelines](pages/research/design-guidelines.md) — UI/UX design guidelines — tone, color palette, typography, components, and Git visual language.
