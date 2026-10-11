@@ -31,3 +31,7 @@ Append-only decision record. The "why" lives here; the full change history lives
 - [2026-10-04] D-27 — Pullini gains a non-staff reader/owner role alongside the single admin — because users and agents need accounts without project-management privileges (extends D-03)
 - [2026-10-05] D-28 — Favorites reference the derived Page row (keyed by project+path), so starring survives content updates and cascades away when a page leaves its repository — because generation is idempotent per path and Git stays canonical (extends D-26)
 - [2026-10-05] D-29 — HTMX is vendored under static/js/vendor like mermaid rather than loaded from a CDN — because the app must run without external runtime dependencies
+- [2026-10-08] D-30 — Personal access tokens store only a public prefix plus a sha256 hash, verified with a constant-time compare, and carry no scopes — because lookup stays fast while the database never holds a usable secret
+- [2026-10-08] D-31 — Artifact slugs are unique per user and frozen at creation — because API addresses and URLs must stay stable when a title changes
+- [2026-10-08] D-32 — The artifact API authenticates with Authorization: Bearer and sharing is an API-only mutation — because the web stays read-only per D-24 and tokens stay out of URLs and logs
+- [2026-10-08] D-33 — pullini-mcp lives under mcp/ in this repository and publishes with PyPI Trusted Publishing — because one repo keeps API and connector in lockstep and OIDC publishing stores no secrets

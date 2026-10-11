@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Access tokens · Pullini{% endblock %}
+{% block content %}
+<div class="max-w-3xl">
+  <h1 class="text-3xl font-bold tracking-tight text-navy">Access tokens</h1>
+  <p class="mt-1 text-sm text-ink/70">
+    Personal access tokens let agents and tools call the Pullini API as you. The
+    secret is shown only once, so copy it before you leave this page.
+  </p>
+
+  {% if new_secret %}
+  <div
+    class="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-950/50"
+  >
+    <p class="text-sm font-medium text-emerald-800 dark:text-emerald-300">
+      New token — copy it now, it will not be shown again.
+    </p>
+    <div class="mt-2 flex items-center gap-2">
+      <code
+        data-token-secret
+        class="block min-w-0 flex-1 overflow-x-auto rounded-md border border-emerald-200 bg-panel px-3 py-2 font-mono text-xs text-ink dark:border-emerald-800"
+        >{{ new_secret }}</code
+      >
+      <button
+        type="button"
+        data-copy-token
+        class="shrink-0 rounded-md border border-line bg-panel px-3 py-2 text-sm font-medium text-navy transition-colors hover:bg-soft"
+      >
+        Copy
+      </button>
+    </div>
+  </div>
+  {% endif %}
+
+  <form
+    method="post"
+    action="{% url 'accounts:token_create' %}"
+    class="mt-8 flex flex-wrap items-end gap-3 rounded-xl border border-line bg-panel p-4"
+  >
+    {% csrf_token %}
+    <div class="min-w-0 flex-1">
+      <label for="token-name" class="block text-sm font-medium text-navy">Name</label>
+      <input
+        type="text"
+        id="token-name"
+        name="name"
+        required
+        maxlength="100"
+        placeholder="e.g. Claude Desktop"
+        class="mt-1 w-full rounded-md border border-line bg-panel px-3 py-2 text-sm text-navy focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+      />
+    </div>
+    <div class="w-40">
+      <label for="token-expiry" class="block text-sm font-medium text-navy">
+        Expires in days
+      </label>
+      <input
+        type="number"
+        id="token-expiry"
+        name="expires_in_days"
+        min="1"
+        placeholder="Never"
+        class="mt-1 w-full rounded-md border border-line bg-panel px-3 py-2 text-sm text-navy focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+      />
+    </div>
+    <button
+      type="submit"
+      class="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90"
+    >
+      Create token
+    </button>
+  </form>
+
+  {% if tokens %}
+  <ul class="mt-8 space-y-3">
+    {% for token in tokens %}
+    <li
+      class="flex items-center justify-between gap-4 rounded-xl border border-line bg-panel p-4"
+    >
+      <div class="min-w-0">
+        <p class="flex items-center gap-2 font-medium text-navy">
+          {{ token.name }}
+          {% if token.is_revoked %}
+          <span
+            class="rounded-full border border-git/40 bg-git/5 px-2 py-0.5 text-xs font-medium text-git"
+            >Revoked</span
+          >
+          {% elif token.is_expired %}
+          <span
+            class="rounded-full border border-line bg-soft px-2 py-0.5 text-xs font-medium text-ink/60"
+            >Expired</span
+          >
+          {% endif %}
+        </p>
+        <p class="mt-0.5 truncate font-mono text-xs text-ink/60">{{ token.display_prefix }}</p>
+        <p class="mt-0.5 text-xs text-ink/50">
+          Created {{ token.created_at|date:"Y-m-d" }}
+          {% if token.expires_at %}· Expires {{ token.expires_at|date:"Y-m-d" }}{% endif %}
+          {% if token.last_used_at %}· Last used {{ token.last_used_at|date:"Y-m-d H:i" }} UTC
+          {% else %}· Never used{% endif %}
+        </p>
+      </div>
+      {% if not token.is_revoked %}
+      <form method="post" action="{% url 'accounts:token_revoke' token.id %}" class="shrink-0">
+        {% csrf_token %}
+        <button
+          type="submit"
+          class="rounded-md border border-line bg-panel px-3 py-1.5 text-sm font-medium text-ink/70 transition-colors hover:bg-soft hover:text-git"
+        >
+          Revoke
+        </button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div
+    class="mt-8 rounded-xl border border-dashed border-line bg-soft/50 p-8 text-center text-sm text-ink/70"
+  >
+    No tokens yet. Create one to connect an agent.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if new_secret %}
+<script>
+  (function () {
+    var button = document.querySelector("[data-copy-token]");
+    var secret = document.querySelector("[data-token-secret]");
+    if (!button || !secret) return;
+    button.addEventListener("click", function () {
+      navigator.clipboard.writeText(secret.textContent.trim()).then(function () {
+        var original = button.textContent;
+        button.textContent = "Copied";
+        setTimeout(function () {
+          button.textContent = original;
+        }, 1500);
+      });
+    });
+  })();
+</script>
+{% endif %}
+{% endblock %}

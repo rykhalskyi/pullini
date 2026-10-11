@@ -116,6 +116,9 @@
             </svg>
           </button>
           {% if user.is_authenticated %}
+          <a href="{% url 'accounts:tokens' %}" class="text-navy/80 transition-colors hover:text-brand"
+            >Tokens</a
+          >
           <span class="text-ink/70">{{ user.get_username }}</span>
           {% if user.is_staff %}
           <a href="/admin/" class="text-navy/80 transition-colors hover:text-brand">Settings</a>
