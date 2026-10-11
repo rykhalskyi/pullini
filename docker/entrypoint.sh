@@ -5,7 +5,7 @@
 set -e
 
 # Announce the running build first in the logs so a deploy is easy to confirm.
-# GIT_REVISION is baked into the image at build time (PULLINI_GIT_SHA).
+# PULLINI_GIT_SHA is baked into the image at build time (Dockerfile ARG).
 version="$(python -c 'import pullini; print(pullini.__version__)' 2>/dev/null || echo unknown)"
 echo "pullini ${version} (git ${PULLINI_GIT_SHA:-unknown}) starting" >&2
 

@@ -75,9 +75,16 @@ class PulliniClient:
 
     # --- transport -----------------------------------------------------------
 
-    def _send(self, method: str, path: str, *, json: dict | None = None) -> httpx.Response:
+    def _send(
+        self,
+        method: str,
+        path: str,
+        *,
+        json: dict | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> httpx.Response:
         try:
-            response = self._client.request(method, path, json=json)
+            response = self._client.request(method, path, json=json, headers=headers)
         except httpx.HTTPError as exc:
             raise PulliniError(
                 f"Could not reach Pullini at {self._config.base_url}: {exc}"
@@ -118,7 +125,7 @@ class PulliniClient:
 
     def skill(self) -> str:
         """Return the agent skill Markdown (``GET /api/skill/``)."""
-        return self._send("GET", "/api/skill/").text
+        return self._send("GET", "/api/skill/", headers={"Accept": "text/markdown"}).text
 
     def list_artifacts(self) -> list[dict]:
         """Return the token owner's artifacts (``GET /api/artifacts/``)."""

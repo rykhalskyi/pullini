@@ -59,12 +59,14 @@ def test_skill_returns_markdown_text():
 
     def handler(request: httpx.Request) -> httpx.Response:
         captured["path"] = request.url.path
+        captured["accept"] = request.headers["Accept"]
         return httpx.Response(200, text="# Skill\n", headers={"Content-Type": "text/markdown"})
 
     text = make_client(handler).skill()
 
     assert text == "# Skill\n"
     assert captured["path"] == "/api/skill/"
+    assert captured["accept"] == "text/markdown"
 
 
 def test_create_sends_title_content_and_visibility():
