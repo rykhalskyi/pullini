@@ -10,6 +10,8 @@ In ``mcp`` 2.x the server class formerly named ``FastMCP`` is ``MCPServer``.
 
 from __future__ import annotations
 
+from importlib.resources import files
+
 from mcp.server.mcpserver import MCPServer
 
 from pullini_mcp import __version__
@@ -122,16 +124,12 @@ def share_artifact(slug: str, enable: bool = True) -> dict:
     "pullini://skill",
     name="pullini-skill",
     title="Pullini artifacts skill",
-    description="Agent skill describing how to use the Pullini artifact REST API.",
+    description="Agent skill describing how to use the Pullini MCP artifact tools.",
     mime_type="text/markdown",
 )
 def skill() -> str:
-    """Return the agent skill the host serves at ``GET /api/skill/``."""
-    client = _client()
-    try:
-        return client.skill()
-    finally:
-        client.close()
+    """Return the local agent skill describing the MCP tools."""
+    return files("pullini_mcp").joinpath("skill.md").read_text(encoding="utf-8")
 
 
 def main() -> None:

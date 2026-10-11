@@ -46,10 +46,6 @@ class FakeClient:
         }
         return self.artifact if enable else None
 
-    def skill(self):
-        self.calls.append(("skill",))
-        return "# Pullini skill\n"
-
     def close(self):
         self.calls.append(("close",))
 
@@ -138,12 +134,11 @@ def test_skill_resource_is_registered():
     assert "pullini://skill" in resources
 
 
-def test_skill_resource_reads_from_client(fake):
+def test_skill_resource_returns_the_tool_guide():
     contents = _read_resource("pullini://skill")
 
-    assert contents[0].content == "# Pullini skill\n"
     assert contents[0].mime_type == "text/markdown"
-    assert ("skill",) in fake.calls
+    assert "store_artifact" in contents[0].content
 
 
 def _list_resources():
