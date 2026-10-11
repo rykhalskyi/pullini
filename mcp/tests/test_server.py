@@ -1,0 +1,128 @@
+"""Tests for the MCP tool surface (E6, T6).
+
+The tools only translate arguments into :class:`PulliniClient` calls, so these
+tests exercise them against a recording fake rather than a live host.
+"""
+
+from __future__ import annotations
+
+import pytest
+
+from pullini_mcp import server
+from pullini_mcp.client import PulliniError
+
+
+class FakeClient:
+    def __init__(self) -> None:
+        self.calls: list[tuple] = []
+        self.artifact: dict = {"slug": "notes", "title": "Notes", "share_url": None}
+
+    def create_artifact(self, title, content, visibility="private"):
+        self.calls.append(("create", title, content, visibility))
+        self.artifact = {"slug": "notes", "title": title, "share_url": None}
+        return self.artifact
+
+    def list_artifacts(self):
+        self.calls.append(("list",))
+        return [self.artifact]
+
+    def get_artifact(self, slug):
+        self.calls.append(("get", slug))
+        return self.artifact
+
+    def update_artifact(self, slug, *, title=None, content=None):
+        self.calls.append(("update", slug, title, content))
+        self.artifact = {**self.artifact, "slug": slug, "title": title or self.artifact["title"]}
+        return self.artifact
+
+    def delete_artifact(self, slug):
+        self.calls.append(("delete", slug))
+
+    def share_artifact(self, slug, *, enable=True):
+        self.calls.append(("share", slug, enable))
+        self.artifact = {
+            **self.artifact,
+            "share_url": "https://pullini.test/a/t/" if enable else None,
+        }
+        return self.artifact if enable else None
+
+    def close(self):
+        self.calls.append(("close",))
+
+
+@pytest.fixture()
+def fake(monkeypatch):
+    client = FakeClient()
+    monkeypatch.setattr(server, "_client", lambda: client)
+    return client
+
+
+def test_tool_names_are_registered():
+    tools = {tool.name for tool in _list_tools()}
+
+    assert tools == {
+        "store_artifact",
+        "list_artifacts",
+        "get_artifact",
+        "update_artifact",
+        "delete_artifact",
+        "share_artifact",
+    }
+
+
+def _list_tools():
+    import asyncio
+
+    return asyncio.run(server.mcp.list_tools())
+
+
+def test_store_creates_when_no_slug(fake):
+    result = server.store_artifact("Notes", "# Notes", "unlisted")
+
+    assert result["slug"] == "notes"
+    assert fake.calls[0] == ("create", "Notes", "# Notes", "unlisted")
+    assert fake.calls[-1] == ("close",)
+
+
+def test_store_rejects_bad_visibility(fake):
+    with pytest.raises(PulliniError, match="visibility"):
+        server.store_artifact("Notes", "# Notes", "public")
+
+    assert fake.calls == []
+
+
+def test_store_overwrites_and_shares_when_slug_given(fake):
+    server.store_artifact("Notes", "# Notes", "unlisted", slug="notes")
+
+    assert ("update", "notes", "Notes", "# Notes") in fake.calls
+    assert ("share", "notes", True) in fake.calls
+
+
+def test_store_overwrite_private_revokes_share(fake):
+    fake.artifact["share_url"] = "https://pullini.test/a/t/"
+
+    result = server.store_artifact("Notes", "# Notes", "private", slug="notes")
+
+    assert ("share", "notes", False) in fake.calls
+    assert result["share_url"] is None
+
+
+def test_list_get_update_delete_share_delegate(fake):
+    assert server.list_artifacts() == [fake.artifact]
+    server.get_artifact("notes")
+    server.update_artifact("notes", content="# New")
+    server.delete_artifact("notes")
+    server.share_artifact("notes")
+
+    assert ("get", "notes") in fake.calls
+    assert ("update", "notes", None, "# New") in fake.calls
+    assert ("delete", "notes") in fake.calls
+    assert ("share", "notes", True) in fake.calls
+
+
+def test_delete_reports_confirmation(fake):
+    assert server.delete_artifact("notes") == {"slug": "notes", "deleted": True}
+
+
+def test_revoke_share_returns_cleared_link(fake):
+    assert server.share_artifact("notes", enable=False) == {"slug": "notes", "share_url": None}

@@ -24,3 +24,4 @@
 ## [2026-10-11] ticket | T5 — Artifact REST API
 ## [2026-10-11] ticket | T7 — Agent Skill API
 ## [2026-10-11] update | T5 — artifact API returns JSON {"error","detail"} for 404 and 405 too, not just 400
+## [2026-10-11] ticket | T6 — pullini-mcp Connector implemented

@@ -75,11 +75,14 @@ stays WSGI as in D-09.
 - [T3 — Personal Access Tokens](../tickets/03-personal-access-tokens.md) — implemented
 - [T4 — Artifacts (model & read-only web)](../tickets/04-artifacts.md) — implemented
 - [T5 — Artifact REST API](../tickets/05-artifact-rest-api.md) — implemented
-- [T6 — pullini-mcp Connector](../tickets/06-pullini-mcp.md) — proposed
+- [T6 — pullini-mcp Connector](../tickets/06-pullini-mcp.md) — implemented
 - [T7 — Agent Skill API](../tickets/07-agent-skill-api.md) — implemented
 
 ## Outcome
 
-In progress. Accounts, login/logout, favorites, personal access tokens (T3),
-artifacts (T4), the artifact REST API (T5) and the agent skill endpoint (T7)
-shipped. Remaining work is T6 (pullini-mcp); not started.
+Shipped. Accounts, login/logout, favorites, personal access tokens (T3),
+artifacts (T4), the artifact REST API (T5), the agent skill endpoint (T7) and the
+`pullini-mcp` connector (T6) all shipped. The connector is a local stdio server
+in `mcp/`, published to PyPI via Trusted Publishing and run with
+`uvx pullini-mcp`. Remaining: the later remote HTTP MCP transport (step 7), which
+reuses the same PAT verifier and is not part of the initial delivery.
