@@ -13,6 +13,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from pullini.accounts.auth import require_token
+from pullini.accounts.models import PersonalAccessToken
 from pullini.accounts.tokens import authenticate, create_for_user, digest, extract_prefix
 
 pytestmark = pytest.mark.django_db
@@ -256,3 +257,49 @@ def test_require_token_rejects_revoked_token():
 
 def test_require_token_exempts_the_view_from_csrf():
     assert getattr(protected, "csrf_exempt", False) is True
+
+
+# --- admin is view-only (one way to create tokens: /settings/tokens/) ---------
+
+
+def test_admin_changelist_accessible_to_superuser(client):
+    admin_user = get_user_model().objects.create_superuser("root", password="s3cret-pass")
+    client.force_login(admin_user)
+    token, _ = create_for_user(admin_user, "laptop")
+
+    response = client.get("/admin/accounts/personalaccesstoken/")
+
+    assert response.status_code == 200
+    assert token.prefix.encode() in response.content
+
+
+def test_admin_add_view_is_forbidden(client):
+    admin_user = get_user_model().objects.create_superuser("root", password="s3cret-pass")
+    client.force_login(admin_user)
+
+    assert client.get("/admin/accounts/personalaccesstoken/add/").status_code == 403
+    response = client.post(
+        "/admin/accounts/personalaccesstoken/add/",
+        {"user": admin_user.pk, "name": "sneaky"},
+    )
+
+    assert response.status_code == 403
+    assert PersonalAccessToken.objects.count() == 0
+
+
+def test_admin_cannot_change_or_delete_tokens(client):
+    admin_user = get_user_model().objects.create_superuser("root", password="s3cret-pass")
+    client.force_login(admin_user)
+    token, _ = create_for_user(make_user(), "laptop")
+
+    change = client.post(
+        f"/admin/accounts/personalaccesstoken/{token.pk}/change/",
+        {"name": "renamed"},
+    )
+    assert change.status_code == 403
+
+    delete = client.post(f"/admin/accounts/personalaccesstoken/{token.pk}/delete/")
+    assert delete.status_code == 403
+
+    token.refresh_from_db()
+    assert token.name == "laptop"
