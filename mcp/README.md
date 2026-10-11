@@ -36,7 +36,28 @@ the token's owner. Treat the raw secret like a password.
 
 ### MCP client config
 
-The client launches the server and passes the two variables. For example:
+The client launches the server and passes the two variables. A copy-paste
+example lives in [`mcp.example.json`](mcp.example.json).
+
+**From a local checkout** (before the package is published): point `--directory`
+at the `mcp/` folder of your clone.
+
+```json
+{
+  "mcpServers": {
+    "pullini": {
+      "command": "uv",
+      "args": ["run", "--directory", "/path/to/pullini/mcp", "pullini-mcp"],
+      "env": {
+        "PULLINI_URL": "http://localhost:8000",
+        "PULLINI_TOKEN": "pln_xxxxxxxx_yyyyyyyyyyyyyyyyyyyyyyyy"
+      }
+    }
+  }
+}
+```
+
+**From PyPI** (once published):
 
 ```json
 {
