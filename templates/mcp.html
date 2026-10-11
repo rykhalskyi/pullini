@@ -82,6 +82,27 @@
       <li><code>share_artifact</code> — enable or revoke the unlisted share link.</li>
     </ul>
 
+    <h2>Agent skill</h2>
+    <p>
+      Alongside the tools, the connector exposes an <strong>agent skill</strong> as the
+      MCP resource <code>pullini://skill</code>. It is a short Markdown guide covering
+      the bearer-token auth, every artifact endpoint and the authoring rules, so an
+      agent can use the API correctly even without prior knowledge of Pullini. The
+      tools above are convenience wrappers around the same REST API the skill
+      documents.
+    </p>
+    <p>
+      Read it from any MCP client that supports resources, or ask the agent to load the
+      <code>pullini://skill</code> resource before it starts writing artifacts. The same
+      document is served over HTTP (token required), which is handy for clients without
+      resource support:
+    </p>
+    <pre><code class="language-bash">curl -H "Authorization: Bearer pln_xxxxxxxx_yyyyyyyyyyyyyyyyyyyyyyyy" {{ pullini_url }}/api/skill/</code></pre>
+    <p>
+      The skill is informational only — it grants no access beyond the token it was
+      fetched with, and each token only ever sees its owner's artifacts.
+    </p>
+
     <h2>Install from PyPI</h2>
     <p>
       Publishing <code>pullini-mcp</code> to PyPI is <strong>in progress</strong>. Once

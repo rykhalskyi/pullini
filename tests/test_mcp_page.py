@@ -15,6 +15,8 @@ def test_mcp_page_renders_instructions(client):
     body = response.content.decode()
     assert "pullini-mcp" in body
     assert "PULLINI_TOKEN" in body
+    assert "pullini://skill" in body
+    assert "/api/skill/" in body
     assert "PyPI" in body
     assert "in progress" in body
 
