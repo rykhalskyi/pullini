@@ -4,6 +4,11 @@
 # that share the database and volume but must not migrate concurrently.
 set -e
 
+# Announce the running build first in the logs so a deploy is easy to confirm.
+# GIT_REVISION is baked into the image at build time (PULLINI_GIT_SHA).
+version="$(python -c 'import pullini; print(pullini.__version__)' 2>/dev/null || echo unknown)"
+echo "pullini ${version} (git ${PULLINI_GIT_SHA:-unknown}) starting" >&2
+
 if [ "${PULLINI_SKIP_BOOTSTRAP:-false}" != "true" ]; then
   attempt=1
   until python manage.py migrate --noinput; do
