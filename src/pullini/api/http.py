@@ -11,7 +11,7 @@ import json
 from collections.abc import Callable
 from functools import wraps
 
-from django.http import HttpRequest, JsonResponse
+from django.http import Http404, HttpRequest, HttpResponseNotAllowed, JsonResponse
 
 
 class ApiError(Exception):
@@ -33,14 +33,25 @@ def isoformat(value) -> str | None:
 
 
 def api_endpoint(view: Callable) -> Callable:
-    """Translate :class:`ApiError` raised by the view into a JSON response."""
+    """Render every client mistake from the view as a JSON response.
+
+    Translates :class:`ApiError`, Django's ``Http404`` and the ``405`` produced
+    by ``@require_http_methods`` into the shared ``{"error", "detail"}`` payload.
+    It must wrap ``@require_http_methods`` so the not-allowed response passes
+    through it.
+    """
 
     @wraps(view)
     def wrapper(request: HttpRequest, *args, **kwargs):
         try:
-            return view(request, *args, **kwargs)
+            response = view(request, *args, **kwargs)
         except ApiError as exc:
             return error(exc.code, exc.detail, exc.status)
+        except Http404 as exc:
+            return error("not_found", str(exc) or "Not found.", status=404)
+        if isinstance(response, HttpResponseNotAllowed):
+            return error("method_not_allowed", "Method not allowed.", status=405)
+        return response
 
     return wrapper
 

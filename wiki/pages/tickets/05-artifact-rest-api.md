@@ -69,11 +69,12 @@ mounted at `/api/`); views live beside their models:
   `GET|PUT|PATCH|DELETE /api/artifacts/<slug>/`,
   `POST|DELETE /api/artifacts/<slug>/share/`.
 - Plain Django JSON views (no DRF); `@require_token` Bearer auth (D-32) and
-  `@require_http_methods`; a small `ApiError`/`api_endpoint` pair gives a
-  consistent `{"error", "detail"}` payload for `400`s. List is capped at 200
-  (no pagination), resources are owner-scoped (`404` cross-user), and the slug
-  stays frozen across title updates (D-31). `visibility: "unlisted"` on create
-  or `POST .../share/` returns a `share_url`.
+  `@require_http_methods`; the `ApiError`/`api_endpoint` pair plus `Http404` and
+  not-allowed handling gives every failure a consistent `{"error", "detail"}`
+  payload (`400`, `404` unknown/cross-user artifact, `405`). List is capped at
+  200 (no pagination), resources are owner-scoped, and the slug stays frozen
+  across title updates (D-31). `visibility: "unlisted"` on create or
+  `POST .../share/` returns a `share_url`.
 
-Verification: `uv run pytest` → 189 passed, 1 skipped (`tests/test_artifacts_api.py`,
-14 tests); `ruff check`/`format` clean; `manage.py check` clean.
+Verification: `uv run pytest` → 192 passed, 1 skipped (`tests/test_artifacts_api.py`,
+17 tests); `ruff check`/`format` clean; `manage.py check` clean.

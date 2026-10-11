@@ -6,10 +6,11 @@ from django.http import HttpRequest, JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from pullini.accounts.auth import require_token
-from pullini.api.http import isoformat
+from pullini.api.http import api_endpoint, isoformat
 
 
 @require_token
+@api_endpoint
 @require_http_methods(["GET"])
 def me(request: HttpRequest) -> JsonResponse:
     token = request.token

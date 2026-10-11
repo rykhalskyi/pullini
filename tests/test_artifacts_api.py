@@ -186,6 +186,15 @@ def test_cross_user_access_returns_404(client):
     assert client.delete(url, **headers).status_code == 404
 
 
+def test_not_found_is_a_json_error(client):
+    headers = bearer(make_user())
+
+    response = client.get(reverse("api:artifact_item", args=["missing"]), **headers)
+
+    assert response.status_code == 404
+    assert response.json()["error"] == "not_found"
+
+
 # --- sharing ------------------------------------------------------------------
 
 
@@ -255,11 +264,13 @@ def test_missing_required_fields_are_a_400(client):
 def test_disallowed_methods_return_405(client):
     headers = bearer(make_user())
 
-    assert client.delete(reverse("api:artifact_collection"), **headers).status_code == 405
-    assert (
-        client.post(reverse("api:me"), content_type="application/json", **headers).status_code
-        == 405
-    )
+    collection = client.delete(reverse("api:artifact_collection"), **headers)
+    assert collection.status_code == 405
+    assert collection.json()["error"] == "method_not_allowed"
+
+    me = client.post(reverse("api:me"), content_type="application/json", **headers)
+    assert me.status_code == 405
+    assert me.json()["error"] == "method_not_allowed"
 
 
 # --- agent skill --------------------------------------------------------------

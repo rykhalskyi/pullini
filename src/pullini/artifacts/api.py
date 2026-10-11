@@ -65,8 +65,8 @@ def _visibility_from(data: dict) -> str:
 
 
 @require_token
-@require_http_methods(["GET", "POST"])
 @api_endpoint
+@require_http_methods(["GET", "POST"])
 def artifact_collection(request: HttpRequest):
     if request.method == "GET":
         artifacts = request.user.artifacts.all()[:LIST_LIMIT]
@@ -86,8 +86,8 @@ def artifact_collection(request: HttpRequest):
 
 
 @require_token
-@require_http_methods(["GET", "PUT", "PATCH", "DELETE"])
 @api_endpoint
+@require_http_methods(["GET", "PUT", "PATCH", "DELETE"])
 def artifact_item(request: HttpRequest, slug: str):
     artifact = _get_owned(request, slug)
 
@@ -122,8 +122,8 @@ def artifact_item(request: HttpRequest, slug: str):
 
 
 @require_token
-@require_http_methods(["POST", "DELETE"])
 @api_endpoint
+@require_http_methods(["POST", "DELETE"])
 def artifact_share(request: HttpRequest, slug: str):
     artifact = _get_owned(request, slug)
     if request.method == "POST":
@@ -134,6 +134,7 @@ def artifact_share(request: HttpRequest, slug: str):
 
 
 @require_token
+@api_endpoint
 @require_http_methods(["GET"])
 def skill(request: HttpRequest) -> HttpResponse:
     """Serve the agent skill describing how to use the artifact API."""
