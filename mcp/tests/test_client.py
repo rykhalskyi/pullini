@@ -54,6 +54,19 @@ def test_requests_send_bearer_auth():
     assert seen["path"] == "/api/me/"
 
 
+def test_skill_returns_markdown_text():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["path"] = request.url.path
+        return httpx.Response(200, text="# Skill\n", headers={"Content-Type": "text/markdown"})
+
+    text = make_client(handler).skill()
+
+    assert text == "# Skill\n"
+    assert captured["path"] == "/api/skill/"
+
+
 def test_create_sends_title_content_and_visibility():
     captured = {}
 

@@ -46,6 +46,10 @@ class FakeClient:
         }
         return self.artifact if enable else None
 
+    def skill(self):
+        self.calls.append(("skill",))
+        return "# Pullini skill\n"
+
     def close(self):
         self.calls.append(("close",))
 
@@ -126,3 +130,29 @@ def test_delete_reports_confirmation(fake):
 
 def test_revoke_share_returns_cleared_link(fake):
     assert server.share_artifact("notes", enable=False) == {"slug": "notes", "share_url": None}
+
+
+def test_skill_resource_is_registered():
+    resources = {str(resource.uri) for resource in _list_resources()}
+
+    assert "pullini://skill" in resources
+
+
+def test_skill_resource_reads_from_client(fake):
+    contents = _read_resource("pullini://skill")
+
+    assert contents[0].content == "# Pullini skill\n"
+    assert contents[0].mime_type == "text/markdown"
+    assert ("skill",) in fake.calls
+
+
+def _list_resources():
+    import asyncio
+
+    return asyncio.run(server.mcp.list_resources())
+
+
+def _read_resource(uri):
+    import asyncio
+
+    return list(asyncio.run(server.mcp.read_resource(uri)))
