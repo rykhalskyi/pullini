@@ -1,7 +1,7 @@
 ---
 created: 2026-10-08
 type: ticket
-status: proposed
+status: implemented
 summary: T6 — pullini-mcp: a local stdio FastMCP connector on PyPI that calls the artifact REST API with a PAT.
 ---
 
@@ -42,7 +42,8 @@ tools.
    `mcp`/`fastmcp` + `httpx`), `src/pullini_mcp/{__init__.py,server.py,client.py}`.
 2. `client.py`: thin HTTP client over the T5 API reusing `PULLINI_URL` /
    `PULLINI_TOKEN`, mapping HTTP errors to readable tool errors.
-3. `server.py`: FastMCP stdio server registering the six tools above.
+3. `server.py`: MCP stdio server registering the six tools above. (`mcp` 2.x
+   renamed `FastMCP` to `MCPServer`; the connector uses the current class.)
 4. `mcp/README.md`: install (`uvx pullini-mcp`), env vars, and client config
    snippets for common MCP clients.
 5. `.github/workflows/publish-mcp.yml`: build + publish on tag using PyPI Trusted
@@ -57,5 +58,23 @@ Publishing.
 
 ## Outcome
 
-Not started. Planned: `mcp/` FastMCP stdio server (`store/list/get/update/delete/
-share_artifact`), `uvx pullini-mcp` packaging and a Trusted-Publishing workflow.
+Shipped. The `mcp/` subdirectory is its own `pullini-mcp` project (hatchling,
+`mcp>=2` + `httpx`) under `src/pullini_mcp/`:
+- `client.py`: `Config.from_env` (`PULLINI_URL`, `PULLINI_TOKEN`, trailing slash
+  trimmed) and `PulliniClient` — a thin `httpx` wrapper over the T5 endpoints
+  (`me`, `list/get/create/update/delete_artifact`, `share_artifact`) mapping
+  non-2xx responses and transport failures to readable `PulliniError`s.
+- `server.py`: `MCPServer("pullini")` (the mcp 2.x name for `FastMCP`) exposing
+  `store_artifact`, `list_artifacts`, `get_artifact`, `update_artifact`,
+  `delete_artifact`, `share_artifact`; each opens a client from the environment
+  per call. `main()` runs the default stdio transport.
+- `README.md`: `uvx pullini-mcp` install, env vars, and a client-config snippet.
+- `pyproject.toml`: `pullini-mcp = "pullini_mcp.server:main"` console script.
+
+Publishing: `.github/workflows/publish-mcp.yml` builds `mcp/` and publishes on
+`mcp-v*` tags via PyPI Trusted Publishing (OIDC, `pypi` environment, no secrets).
+CI: a `mcp` job in `ci.yml` runs ruff + pytest in `mcp/`.
+
+Verification: `uv run pytest` in `mcp/` → 20 passed (mocked `httpx.MockTransport`,
+no live host); `ruff check`/`format` clean; `uv build` produces the sdist and
+wheel; the six tools register on `mcp.list_tools()`.

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ artifact.title }} · Artifacts · Pullini{% endblock %}
+{% block content %}
+<nav class="text-sm text-ink/70" aria-label="Breadcrumb">
+  <a href="{% url 'artifacts:list' %}" class="hover:text-brand">Artifacts</a>
+  <span class="px-1">/</span>
+  <span class="text-navy">{{ artifact.title }}</span>
+</nav>
+
+<article class="mt-6 max-w-3xl">
+  <h1 class="text-3xl font-bold tracking-tight text-navy">{{ artifact.title }}</h1>
+  <p class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink/60">
+    <span class="font-mono">{{ artifact.slug }}</span>
+    <span>Updated {{ artifact.updated_at|date:"Y-m-d H:i" }} UTC</span>
+    <span>{% if artifact.is_shared %}Unlisted share link{% else %}Private{% endif %}</span>
+  </p>
+
+  {% if share_url %}
+  <div class="mt-6 rounded-xl border border-line bg-panel p-4">
+    <p class="text-sm font-medium text-navy">Share link</p>
+    <p class="mt-1 text-xs text-ink/60">Anyone with this link can read this artifact.</p>
+    <div class="mt-2 flex items-center gap-2">
+      <code
+        data-share-url
+        class="block min-w-0 flex-1 overflow-x-auto rounded-md border border-line bg-panel px-3 py-2 font-mono text-xs text-ink"
+        >{{ share_url }}</code
+      >
+      <button
+        type="button"
+        data-copy-share
+        class="shrink-0 rounded-md border border-line bg-panel px-3 py-2 text-sm font-medium text-navy transition-colors hover:bg-soft"
+      >
+        Copy
+      </button>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="wiki-content mt-8">{{ artifact.html|safe }}</div>
+</article>
+{% endblock %}
+
+{% block scripts %}
+{% if share_url %}
+<script>
+  (function () {
+    var button = document.querySelector("[data-copy-share]");
+    var url = document.querySelector("[data-share-url]");
+    if (!button || !url) return;
+    button.addEventListener("click", function () {
+      navigator.clipboard.writeText(url.textContent.trim()).then(function () {
+        var original = button.textContent;
+        button.textContent = "Copied";
+        setTimeout(function () {
+          button.textContent = original;
+        }, 1500);
+      });
+    });
+  })();
+</script>
+{% endif %}
+{% if artifact.has_mermaid %}
+<script src="{% static 'js/vendor/mermaid.min.js' %}" defer></script>
+<script src="{% static 'js/mermaid-render.js' %}" defer></script>
+{% endif %}
+{% endblock %}

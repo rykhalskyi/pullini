@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ artifact.title }} · Pullini{% endblock %}
+{% block content %}
+<article class="mx-auto max-w-3xl">
+  <p class="text-xs font-semibold uppercase tracking-wide text-ink/50">Shared artifact</p>
+  <h1 class="mt-1 text-3xl font-bold tracking-tight text-navy">{{ artifact.title }}</h1>
+  <p class="mt-2 text-xs text-ink/60">
+    Updated {{ artifact.updated_at|date:"Y-m-d H:i" }} UTC
+  </p>
+  <div class="wiki-content mt-8">{{ artifact.html|safe }}</div>
+</article>
+{% endblock %}
+
+{% block scripts %}
+{% if artifact.has_mermaid %}
+<script src="{% static 'js/vendor/mermaid.min.js' %}" defer></script>
+<script src="{% static 'js/mermaid-render.js' %}" defer></script>
+{% endif %}
+{% endblock %}

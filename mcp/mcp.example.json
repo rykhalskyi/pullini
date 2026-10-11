@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "pullini": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/path/to/pullini/mcp",
+        "pullini-mcp"
+      ],
+      "env": {
+        "PULLINI_URL": "http://localhost:8000",
+        "PULLINI_TOKEN": "pln_348fd66e_Xf3ZHb8RxQtvKwTH-NuZz9ymToevfJS2q97_GAXDu5M"
+      }
+    }
+  }
+}

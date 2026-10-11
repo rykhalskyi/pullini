@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     "pullini.wiki",
     "pullini.favorites",
     "pullini.accounts",
+    "pullini.artifacts",
 ]
 
 MIDDLEWARE = [

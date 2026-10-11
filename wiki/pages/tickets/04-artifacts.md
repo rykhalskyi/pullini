@@ -1,7 +1,7 @@
 ---
 created: 2026-10-08
 type: ticket
-status: proposed
+status: implemented
 summary: T4 — user-owned Markdown artifacts: model, read-only list/detail pages, unlisted share links and the Artifacts nav entry.
 ---
 
@@ -57,6 +57,21 @@ create. Renders through the E4 pipeline (D-17/D-18).
 
 ## Outcome
 
-Not started. Planned: `pullini.artifacts` `Artifact` model, owner list/detail pages,
-public `/a/<share_token>/` and the Artifacts nav entry, verified by
-`tests/test_artifacts.py`.
+Shipped. New `pullini.artifacts` app:
+- `Artifact(user, title, slug, content, html, plain_text, content_hash, visibility,
+  share_token, created_at, updated_at)`, unique `(user, slug)`, ordered
+  `-updated_at`, indexed `(user, -updated_at)` (migration `0001_initial`); admin.
+- `pullini/artifacts/services.py`: `allocate_slug` (per-user, frozen at create,
+  D-31), `create_artifact`, `save_artifact` rendering `html` / `plain_text` /
+  `content_hash` through `pullini.wiki.markup`, `generate_share_token` /
+  `clear_share_token`.
+- Views/URLs: `GET /artifacts/` list and `GET /artifacts/<slug>/` detail (login
+  required, owner-scoped) and public `GET /a/<share_token>/` (unlisted only;
+  private → `404`). Detail shows the share URL with a copy button when present.
+- Templates `templates/artifacts/{list,detail,shared}.html`; Artifacts nav link
+  beside Favorites in `templates/base.html`.
+
+Verification: `uv run pytest` → 175 passed, 1 skipped (`tests/test_artifacts.py`,
+16 tests); `ruff check`/`format` clean; `manage.py check` and
+`makemigrations --check` clean. `uv.lock`'s root version was re-synced from its
+stale 0.6.0 to the pyproject 0.6.1 by `uv run`.

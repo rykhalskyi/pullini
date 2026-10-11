@@ -53,6 +53,11 @@
           class="text-sm text-navy/80 transition-colors hover:text-brand"
           >Favorites</a
         >
+        <a
+          href="{% url 'artifacts:list' %}"
+          class="text-sm text-navy/80 transition-colors hover:text-brand"
+          >Artifacts</a
+        >
         <form
           method="get"
           action="{% url 'search:global' %}"

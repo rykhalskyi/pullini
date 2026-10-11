@@ -1,0 +1,30 @@
+name: Publish pullini-mcp
+
+# Builds and publishes the connector under mcp/ to PyPI with Trusted Publishing
+# (OIDC) — no stored secrets (D-33). Configure the PyPI project's trusted
+# publisher for this repository, the "pypi" environment and this workflow file.
+
+on:
+  push:
+    tags:
+      - "mcp-v*"
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.15"
+      - name: Build
+        working-directory: mcp
+        run: uv build
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: mcp/dist
