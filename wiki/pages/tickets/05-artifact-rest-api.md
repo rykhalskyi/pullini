@@ -1,7 +1,7 @@
 ---
 created: 2026-10-08
 type: ticket
-status: proposed
+status: implemented
 summary: T5 — artifact REST API: plain Django JSON views under /api/ authenticated with a PAT Bearer token.
 ---
 
@@ -61,5 +61,19 @@ Bearer auth and API-only sharing mutations.
 
 ## Outcome
 
-Not started. Planned: `/api/me/` and `/api/artifacts/` CRUD + share endpoints with
-Bearer PAT auth, verified by `tests/test_artifacts_api.py`.
+Shipped. New `pullini.api` package (`http.py` helpers + `urls.py` aggregator
+mounted at `/api/`); views live beside their models:
+- `pullini/accounts/api.py`: `GET /api/me/` returns the username and the
+  presented token's name/prefix/timestamps.
+- `pullini/artifacts/api.py`: `GET|POST /api/artifacts/`,
+  `GET|PUT|PATCH|DELETE /api/artifacts/<slug>/`,
+  `POST|DELETE /api/artifacts/<slug>/share/`.
+- Plain Django JSON views (no DRF); `@require_token` Bearer auth (D-32) and
+  `@require_http_methods`; a small `ApiError`/`api_endpoint` pair gives a
+  consistent `{"error", "detail"}` payload for `400`s. List is capped at 200
+  (no pagination), resources are owner-scoped (`404` cross-user), and the slug
+  stays frozen across title updates (D-31). `visibility: "unlisted"` on create
+  or `POST .../share/` returns a `share_url`.
+
+Verification: `uv run pytest` → 189 passed, 1 skipped (`tests/test_artifacts_api.py`,
+14 tests); `ruff check`/`format` clean; `manage.py check` clean.
