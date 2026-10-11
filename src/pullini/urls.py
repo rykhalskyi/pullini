@@ -10,6 +10,7 @@ from pullini.core import views
 
 urlpatterns = [
     path("", views.home, name="home"),
+    path("mcp/", views.mcp, name="mcp"),
     path("login/", auth_views.LoginView.as_view(), name="login"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("healthz", views.healthz, name="healthz"),

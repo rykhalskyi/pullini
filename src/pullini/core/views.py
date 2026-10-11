@@ -28,6 +28,15 @@ def home(request: HttpRequest):
     )
 
 
+def mcp(request: HttpRequest):
+    """Static instructions for wiring the Pullini MCP connector into an agent."""
+    return render(
+        request,
+        "mcp.html",
+        {"pullini_url": request.build_absolute_uri("/").rstrip("/")},
+    )
+
+
 def healthz(request: HttpRequest) -> JsonResponse:
     status = collect_status(detailed=_may_view_details(request))
     code = 200 if status["status"] == "healthy" else 503

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}MCP · Pullini{% endblock %}
+{% block content %}
+<div class="max-w-3xl">
+  <div class="wiki-content">
+    <h1>Connect an agent with MCP</h1>
+    <p>
+      Pullini ships a local <strong>stdio MCP connector</strong> (<code>pullini-mcp</code>)
+      that lets an agent create, read, update, delete and share artifacts through the
+      authenticated API. The connector runs on the agent's machine and reads its
+      configuration from the environment.
+    </p>
+
+    <h2>1. Create a token</h2>
+    <p>
+      The connector authenticates with a personal access token. Create one on the
+      <a href="{% url 'accounts:tokens' %}">Tokens</a> page and copy the secret
+      (<code>pln_…</code>) — it is shown only once.
+    </p>
+
+    <h2>2. Run the connector from the repo</h2>
+    <p>
+      From a checkout of the Pullini repository, <code>uv</code> resolves and runs the
+      connector straight from the <code>mcp/</code> folder — no install step needed:
+    </p>
+    <pre><code class="language-bash">uv run --directory /path/to/pullini/mcp pullini-mcp</code></pre>
+    <p>
+      Point <code>--directory</code> at the <code>mcp/</code> folder of your clone.
+    </p>
+
+    <h2>3. Add it to your client</h2>
+    <p>
+      Add a <code>pullini</code> entry to your MCP client's config, passing
+      <code>PULLINI_URL</code> and <code>PULLINI_TOKEN</code>. For opencode, edit
+      <code>~/.config/opencode/opencode.jsonc</code>:
+    </p>
+    <pre><code class="language-json">{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "pullini": {
+      "type": "local",
+      "command": [
+        "uv",
+        "run",
+        "--directory",
+        "/path/to/pullini/mcp",
+        "pullini-mcp"
+      ],
+      "enabled": true,
+      "environment": {
+        "PULLINI_URL": "{{ pullini_url }}",
+        "PULLINI_TOKEN": "pln_xxxxxxxx_yyyyyyyyyyyyyyyyyyyyyyyy"
+      }
+    }
+  }
+}</code></pre>
+    <p>
+      Other clients use an <code>mcpServers</code> object with <code>command</code>,
+      <code>args</code> and <code>env</code>:
+    </p>
+    <pre><code class="language-json">{
+  "mcpServers": {
+    "pullini": {
+      "command": "uv",
+      "args": ["run", "--directory", "/path/to/pullini/mcp", "pullini-mcp"],
+      "env": {
+        "PULLINI_URL": "{{ pullini_url }}",
+        "PULLINI_TOKEN": "pln_xxxxxxxx_yyyyyyyyyyyyyyyyyyyyyyyy"
+      }
+    }
+  }
+}</code></pre>
+    <p>Restart the client so it launches the server, then confirm the tools appear.</p>
+
+    <h2>Tools</h2>
+    <ul>
+      <li><code>store_artifact</code> — create an artifact, or overwrite one when <code>slug</code> is given.</li>
+      <li><code>list_artifacts</code> — list the token owner's artifacts.</li>
+      <li><code>get_artifact</code> — fetch one artifact (source Markdown, rendered HTML, plain text).</li>
+      <li><code>update_artifact</code> — change an artifact's title and/or content.</li>
+      <li><code>delete_artifact</code> — delete an artifact.</li>
+      <li><code>share_artifact</code> — enable or revoke the unlisted share link.</li>
+    </ul>
+
+    <h2>Install from PyPI</h2>
+    <p>
+      Publishing <code>pullini-mcp</code> to PyPI is <strong>in progress</strong>. Once
+      available, the checkout step above is replaced by:
+    </p>
+    <pre><code class="language-bash">uvx pullini-mcp</code></pre>
+  </div>
+</div>
+{% endblock %}
