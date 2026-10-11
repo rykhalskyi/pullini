@@ -118,6 +118,22 @@ def share_artifact(slug: str, enable: bool = True) -> dict:
         client.close()
 
 
+@mcp.resource(
+    "pullini://skill",
+    name="pullini-skill",
+    title="Pullini artifacts skill",
+    description="Agent skill describing how to use the Pullini artifact REST API.",
+    mime_type="text/markdown",
+)
+def skill() -> str:
+    """Return the agent skill the host serves at ``GET /api/skill/``."""
+    client = _client()
+    try:
+        return client.skill()
+    finally:
+        client.close()
+
+
 def main() -> None:
     """Run the stdio server (entry point for ``uvx pullini-mcp``)."""
     mcp.run()

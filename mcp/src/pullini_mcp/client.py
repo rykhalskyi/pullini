@@ -75,15 +75,26 @@ class PulliniClient:
 
     # --- transport -----------------------------------------------------------
 
-    def _request(self, method: str, path: str, *, json: dict | None = None) -> Any:
+    def _send(
+        self,
+        method: str,
+        path: str,
+        *,
+        json: dict | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> httpx.Response:
         try:
-            response = self._client.request(method, path, json=json)
+            response = self._client.request(method, path, json=json, headers=headers)
         except httpx.HTTPError as exc:
             raise PulliniError(
                 f"Could not reach Pullini at {self._config.base_url}: {exc}"
             ) from exc
         if response.status_code >= 400:
             raise self._error(response)
+        return response
+
+    def _request(self, method: str, path: str, *, json: dict | None = None) -> Any:
+        response = self._send(method, path, json=json)
         if response.status_code == 204 or not response.content:
             return None
         return response.json()
@@ -111,6 +122,10 @@ class PulliniClient:
     def me(self) -> dict:
         """Return the token owner and token metadata (``GET /api/me/``)."""
         return self._request("GET", "/api/me/")
+
+    def skill(self) -> str:
+        """Return the agent skill Markdown (``GET /api/skill/``)."""
+        return self._send("GET", "/api/skill/", headers={"Accept": "text/markdown"}).text
 
     def list_artifacts(self) -> list[dict]:
         """Return the token owner's artifacts (``GET /api/artifacts/``)."""

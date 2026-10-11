@@ -163,10 +163,12 @@ STORAGES = {
 # Security (production only)
 # ---------------------------------------------------------------------------
 if not DEBUG:
-    # Only trust X-Forwarded-Proto when an operator confirms a proxy strips it.
-    # Trusting it unconditionally lets any direct client spoof HTTPS.
+    # Only trust the proxy's forwarded scheme/host when an operator confirms a
+    # proxy strips them. Trusting them unconditionally lets any direct client
+    # spoof HTTPS or the Host (which build_absolute_uri then echoes back).
     if env("DJANGO_TRUST_PROXY_HEADERS"):
         SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+        USE_X_FORWARDED_HOST = True
 
     SECURE_COOKIES = env("DJANGO_SECURE_COOKIES")
     SESSION_COOKIE_SECURE = SECURE_COOKIES
