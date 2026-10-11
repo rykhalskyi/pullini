@@ -116,19 +116,55 @@
             </svg>
           </button>
           {% if user.is_authenticated %}
-          <a href="{% url 'accounts:tokens' %}" class="text-navy/80 transition-colors hover:text-brand"
-            >Tokens</a
-          >
-          <span class="text-ink/70">{{ user.get_username }}</span>
-          {% if user.is_staff %}
-          <a href="/admin/" class="text-navy/80 transition-colors hover:text-brand">Settings</a>
-          {% endif %}
-          <form method="post" action="{% url 'logout' %}" class="inline">
-            {% csrf_token %}
-            <button type="submit" class="text-navy/80 transition-colors hover:text-brand">
-              Log out
+          <div class="relative" data-menu>
+            <button
+              type="button"
+              data-menu-button
+              aria-haspopup="true"
+              aria-expanded="false"
+              aria-label="Account menu"
+              class="flex items-center gap-2 rounded-md px-2 py-1.5 text-navy/80 transition-colors hover:bg-soft"
+            >
+              <span class="max-w-[12rem] truncate">{{ user.get_username }}</span>
+              <svg
+                class="size-4 shrink-0"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <path d="M3 6h18M3 12h18M3 18h18" />
+              </svg>
             </button>
-          </form>
+            <div
+              data-menu-panel
+              class="absolute right-0 z-20 mt-2 hidden w-44 overflow-hidden rounded-md border border-line bg-panel py-1 shadow-lg"
+            >
+              {% if user.is_staff %}
+              <a
+                href="/admin/"
+                class="block px-4 py-2 text-sm text-navy/80 transition-colors hover:bg-soft"
+                >Settings</a
+              >
+              {% endif %}
+              <a
+                href="{% url 'accounts:tokens' %}"
+                class="block px-4 py-2 text-sm text-navy/80 transition-colors hover:bg-soft"
+                >Tokens</a
+              >
+              <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button
+                  type="submit"
+                  class="block w-full px-4 py-2 text-left text-sm text-navy/80 transition-colors hover:bg-soft"
+                >
+                  Log out
+                </button>
+              </form>
+            </div>
+          </div>
           {% else %}
           <a href="{% url 'login' %}" class="text-navy/80 transition-colors hover:text-brand">Log in</a>
           {% endif %}
@@ -151,6 +187,7 @@
     </main>
     <script src="{% static 'js/vendor/htmx.min.js' %}" defer></script>
     <script src="{% static 'js/theme.js' %}" defer></script>
+    <script src="{% static 'js/menu.js' %}" defer></script>
     <script src="{% static 'js/copy-code.js' %}" defer></script>
     {% block scripts %}{% endblock %}
   </body>
