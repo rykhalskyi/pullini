@@ -24,6 +24,7 @@
 - [tickets/04-artifacts](pages/tickets/04-artifacts.md) — T4 — user-owned Markdown artifacts: model, read-only list/detail pages, unlisted share links and the Artifacts nav entry.
 - [tickets/05-artifact-rest-api](pages/tickets/05-artifact-rest-api.md) — T5 — artifact REST API: plain Django JSON views under /api/ authenticated with a PAT Bearer token.
 - [tickets/06-pullini-mcp](pages/tickets/06-pullini-mcp.md) — T6 — pullini-mcp: a local stdio FastMCP connector on PyPI that calls the artifact REST API with a PAT.
+- [tickets/07-agent-skill-api](pages/tickets/07-agent-skill-api.md) — T7 — an authenticated /api/skill/ endpoint serving a Markdown agent skill that documents the artifact create/edit/delete/share flow.
 
 ## Research
 - [research/design-guidelines](pages/research/design-guidelines.md) — UI/UX design guidelines — tone, color palette, typography, components, and Git visual language.

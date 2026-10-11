@@ -260,3 +260,21 @@ def test_disallowed_methods_return_405(client):
         client.post(reverse("api:me"), content_type="application/json", **headers).status_code
         == 405
     )
+
+
+# --- agent skill --------------------------------------------------------------
+
+
+def test_skill_requires_a_token(client):
+    assert client.get(reverse("api:skill")).status_code == 401
+
+
+def test_skill_returns_the_authoring_guide(client):
+    response = client.get(reverse("api:skill"), **bearer(make_user()))
+
+    assert response.status_code == 200
+    assert response["Content-Type"].startswith("text/markdown")
+    body = response.content
+    assert b"name: pullini-artifacts" in body
+    assert b"POST   /api/artifacts/" in body
+    assert b"DELETE /api/artifacts/<slug>/" in body

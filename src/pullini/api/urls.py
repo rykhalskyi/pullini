@@ -11,6 +11,7 @@ app_name = "api"
 
 urlpatterns = [
     path("me/", accounts_api.me, name="me"),
+    path("skill/", artifacts_api.skill, name="skill"),
     path("artifacts/", artifacts_api.artifact_collection, name="artifact_collection"),
     path("artifacts/<slug:slug>/", artifacts_api.artifact_item, name="artifact_item"),
     path("artifacts/<slug:slug>/share/", artifacts_api.artifact_share, name="artifact_share"),

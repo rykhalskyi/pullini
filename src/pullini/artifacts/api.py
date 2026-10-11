@@ -6,6 +6,8 @@ to the token's owner (D-32). Plain Django JSON views, no DRF (D-25).
 
 from __future__ import annotations
 
+from importlib.resources import files
+
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -18,6 +20,8 @@ from pullini.artifacts.models import Artifact, Visibility
 
 # A simple cap instead of pagination (out of scope for v1).
 LIST_LIMIT = 200
+
+_SKILL_FILE = files("pullini.artifacts").joinpath("skill.md")
 
 
 def _share_url(request: HttpRequest, artifact: Artifact) -> str | None:
@@ -127,3 +131,13 @@ def artifact_share(request: HttpRequest, slug: str):
         return JsonResponse(serialize_detail(request, artifact))
     services.clear_share_token(artifact)
     return HttpResponse(status=204)
+
+
+@require_token
+@require_http_methods(["GET"])
+def skill(request: HttpRequest) -> HttpResponse:
+    """Serve the agent skill describing how to use the artifact API."""
+    return HttpResponse(
+        _SKILL_FILE.read_text(encoding="utf-8"),
+        content_type="text/markdown; charset=utf-8",
+    )
