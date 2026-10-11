@@ -142,7 +142,7 @@
               data-menu-panel
               class="absolute right-0 z-20 mt-2 hidden w-44 overflow-hidden rounded-md border border-line bg-panel py-1 shadow-lg"
             >
-              {% if user.is_staff %}
+              {% if user.is_superuser %}
               <a
                 href="/admin/"
                 class="block px-4 py-2 text-sm text-navy/80 transition-colors hover:bg-soft"

@@ -86,7 +86,28 @@ def test_nav_shows_username_and_logout_for_reader(client):
     assert b"Settings" not in content
 
 
-def test_nav_shows_settings_for_staff(client):
-    client.force_login(make_user(username="admin", is_staff=True))
+def test_nav_shows_settings_for_superuser(client):
+    client.force_login(make_user(username="admin", is_superuser=True))
 
     assert b"Settings" in client.get(reverse("home")).content
+
+
+def test_nav_hides_settings_for_non_superuser_staff(client):
+    client.force_login(make_user(username="admin", is_staff=True))
+
+    assert b"Settings" not in client.get(reverse("home")).content
+
+
+def test_admin_blocks_non_superuser_staff(client):
+    client.force_login(make_user(username="admin", is_staff=True))
+
+    response = client.get("/admin/")
+
+    assert response.status_code == 302
+    assert "/admin/login/" in response.url
+
+
+def test_admin_allows_superuser(client):
+    client.force_login(make_user(username="admin", is_superuser=True))
+
+    assert client.get("/admin/").status_code == 200

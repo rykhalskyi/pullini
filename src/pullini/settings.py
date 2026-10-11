@@ -71,7 +71,7 @@ GIT_REVISION = env("PULLINI_GIT_SHA", default="")
 # Applications
 # ---------------------------------------------------------------------------
 INSTALLED_APPS = [
-    "django.contrib.admin",
+    "pullini.core.admin.PulliniAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
