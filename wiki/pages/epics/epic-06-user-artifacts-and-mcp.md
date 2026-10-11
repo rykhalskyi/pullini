@@ -73,11 +73,12 @@ stays WSGI as in D-09.
 - [T1 — Authorization](../tickets/01-auth-login.md) — implemented
 - [T2 — Favorites](../tickets/02-favorites.md) — implemented
 - [T3 — Personal Access Tokens](../tickets/03-personal-access-tokens.md) — implemented
-- [T4 — Artifacts (model & read-only web)](../tickets/04-artifacts.md) — proposed
+- [T4 — Artifacts (model & read-only web)](../tickets/04-artifacts.md) — implemented
 - [T5 — Artifact REST API](../tickets/05-artifact-rest-api.md) — proposed
 - [T6 — pullini-mcp Connector](../tickets/06-pullini-mcp.md) — proposed
 
 ## Outcome
 
-In progress. Accounts, login/logout, favorites and personal access tokens (T3)
-shipped. Remaining work is split into T4–T6; none started.
+In progress. Accounts, login/logout, favorites, personal access tokens (T3) and
+artifacts (T4) shipped. Remaining work is T5 (artifact REST API) and T6
+(pullini-mcp); none started.
