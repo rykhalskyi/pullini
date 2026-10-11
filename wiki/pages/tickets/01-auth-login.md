@@ -40,7 +40,7 @@ D-27 reader role (extends D-03). Built-in auth views; no custom account model.
 
 Shipped. `/login/` and POST-only `/logout/` use Django's built-in `LoginView`/
 `LogoutView`; the reader is a non-staff Django user (no new model). The header now
-shows Favorites, the username + Log out, and Settings only for staff.
+shows Favorites, the username + Log out, and Settings only for superusers (D-35).
 
 Verification: `uv run pytest` → 126 passed, 1 skipped; `ruff check`/`format` clean;
 `manage.py check` clean; `makemigrations --check` clean (`tests/test_auth.py`).

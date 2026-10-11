@@ -51,7 +51,7 @@ limiting.
 ## Decisions
 
 D-23 PAT over OAuth · D-30 hashed tokens with public prefix, no scopes · D-32 Bearer
-authentication. Extends D-27.
+authentication · D-34 view-only token admin. Extends D-27.
 
 ## Outcome
 
@@ -65,7 +65,8 @@ Shipped. New `pullini.accounts` app:
   `request.user` / `request.token`, else `401` (D-32).
 - `/settings/tokens/` list + create (optional expiry in days) + revoke, secret
   shown once via a session flash; "Tokens" link in the account nav.
-- `templates/accounts/tokens.html`; admin registration.
+- `templates/accounts/tokens.html`; view-only admin registration (add/change/delete
+  disabled per D-34) so `/settings/tokens/` is the only way to create a PAT.
 
 Verification: `uv run pytest` → 151 passed, 1 skipped (`tests/test_tokens.py`, 21
 tests); `ruff check`/`format` clean; `manage.py check` and
