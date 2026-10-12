@@ -68,7 +68,10 @@ reader role (extends D-03) · D-30 hashed tokens with public prefix, no scopes �
 D-31 per-user artifact slugs frozen on create · D-32 Bearer auth and API-only share
 mutations · D-33 in-repo connector with Trusted Publishing · D-37 persistent
 per-user tag vocabulary created lazily · D-38 tag metadata editable from the web
-while content stays API-only. The deployment server stays WSGI as in D-09.
+while content stays API-only · D-39 private per-user quizzes, one per (user,
+target) · D-40 agent-authored questions scored server-side · D-41 quiz stores the
+source content hash · D-42 connector page-read tools ground quizzes in page
+content. The deployment server stays WSGI as in D-09.
 
 ## Tickets
 
@@ -80,6 +83,9 @@ while content stays API-only. The deployment server stays WSGI as in D-09.
 - [T6 — pullini-mcp Connector](../tickets/06-pullini-mcp.md) — implemented
 - [T7 — Agent Skill API](../tickets/07-agent-skill-api.md) — implemented
 - [T8 — Artifact Tags](../tickets/08-artifact-tags.md) — implemented
+- [T9 — Quizzes (core)](../tickets/09-quizzes.md) — proposed
+- [T10 — Quizzes REST API](../tickets/10-quizzes-api.md) — proposed
+- [T11 — Quizzes MCP tools](../tickets/11-quizzes-mcp.md) — proposed
 
 ## Outcome
 

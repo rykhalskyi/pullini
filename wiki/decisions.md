@@ -40,3 +40,7 @@ Append-only decision record. The "why" lives here; the full change history lives
 - [2026-10-11] D-36 — The artifact API serves an agent skill document at GET /api/skill/ (Markdown, token-gated) — because a single fetchable instruction file keeps agents in sync with the create/edit/delete/share flow without per-host prompts
 - [2026-10-12] D-37 — tags are a persistent per-user vocabulary created lazily — because users need reusable labels without a separate tag-management screen
 - [2026-10-12] D-38 — artifact content stays API-only (D-24) but tags are user metadata editable from the web — because tags are organizational metadata an owner should manage directly, not agent-authored content
+- [2026-10-12] D-39 — Quizzes are private per user, target exactly one Page or Artifact via two nullable FKs plus a discriminator, are unique per (user, target), replace via upsert and cascade on source deletion — because a quiz belongs to one owner and one source page
+- [2026-10-12] D-40 — Quiz questions are agent-authored through the API/MCP and self-study only, so correctness stays server-side and last/best score is persisted on the quiz — because scoring is only for the owner's own review
+- [2026-10-12] D-41 — Each quiz stores its source page's content_hash — because Git pages are regenerated on sync and the UI should flag quizzes that are stale
+- [2026-10-12] D-42 — The pullini-mcp connector gains get_page/list_pages tools so an agent can read wiki source before generating a quiz — because quizzes must be grounded in the page content

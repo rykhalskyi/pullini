@@ -26,3 +26,6 @@
 ## [2026-10-11] update | T5 — artifact API returns JSON {"error","detail"} for 404 and 405 too, not just 400
 ## [2026-10-11] ticket | T6 — pullini-mcp Connector implemented
 ## [2026-10-12] ticket | T8 — Artifact tags
+## [2026-10-12] ticket | T9 — Quizzes
+## [2026-10-12] ticket | T10 — Quizzes REST API
+## [2026-10-12] ticket | T11 — Quizzes MCP tools
