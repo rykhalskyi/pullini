@@ -136,30 +136,51 @@ class PulliniClient:
         """Return one artifact with source Markdown and rendered HTML."""
         return self._request("GET", f"/api/artifacts/{quote(slug)}/")
 
-    def create_artifact(self, title: str, content: str, visibility: str = "private") -> dict:
+    def create_artifact(
+        self,
+        title: str,
+        content: str,
+        visibility: str = "private",
+        tags: list[str] | None = None,
+    ) -> dict:
         """Create an artifact (``POST /api/artifacts/``)."""
-        return self._request(
-            "POST",
-            "/api/artifacts/",
-            json={"title": title, "content": content, "visibility": visibility},
-        )
+        body: dict[str, Any] = {"title": title, "content": content, "visibility": visibility}
+        if tags is not None:
+            body["tags"] = tags
+        return self._request("POST", "/api/artifacts/", json=body)
 
     def update_artifact(
-        self, slug: str, *, title: str | None = None, content: str | None = None
+        self,
+        slug: str,
+        *,
+        title: str | None = None,
+        content: str | None = None,
+        tags: list[str] | None = None,
     ) -> dict:
         """Partially update an artifact (``PATCH /api/artifacts/<slug>/``)."""
-        if title is None and content is None:
-            raise PulliniError("Provide a new title and/or content to update.")
-        body: dict[str, str] = {}
+        if title is None and content is None and tags is None:
+            raise PulliniError("Provide a new title, content and/or tags to update.")
+        body: dict[str, Any] = {}
         if title is not None:
             body["title"] = title
         if content is not None:
             body["content"] = content
+        if tags is not None:
+            body["tags"] = tags
         return self._request("PATCH", f"/api/artifacts/{quote(slug)}/", json=body)
 
     def delete_artifact(self, slug: str) -> None:
         """Delete an artifact (``DELETE /api/artifacts/<slug>/``)."""
         self._request("DELETE", f"/api/artifacts/{quote(slug)}/")
+
+    def list_tags(self) -> list[dict]:
+        """Return the token owner's tag vocabulary (``GET /api/tags/``)."""
+        payload = self._request("GET", "/api/tags/")
+        return payload.get("tags", [])
+
+    def delete_tag(self, slug: str) -> None:
+        """Delete one tag from the vocabulary (``DELETE /api/tags/<slug>/``)."""
+        self._request("DELETE", f"/api/tags/{quote(slug)}/")
 
     def share_artifact(self, slug: str, *, enable: bool = True) -> dict | None:
         """Enable or revoke the unlisted share link (``POST``/``DELETE .../share/``)."""

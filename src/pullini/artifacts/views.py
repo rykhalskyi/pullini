@@ -1,21 +1,44 @@
-"""Read-only artifact views: owner list/detail and the public share page (E6, D-24)."""
+"""Artifact views: read-only owner list/detail, the public share page and the
+HTMX tag controls (E6, T4/T8, D-24/D-38).
+
+Artifact **content** stays API-only (D-24); tags are user metadata, so the web
+surface lets their owner attach, detach and delete them (D-38).
+"""
 
 from __future__ import annotations
 
+from contextlib import suppress
+
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 
-from pullini.artifacts.models import Artifact, Visibility
+from pullini.artifacts import services
+from pullini.artifacts.models import Artifact, Tag, Visibility
+
+
+def _all_tags(request: HttpRequest):
+    return services.tags_with_counts(request.user)
 
 
 @login_required
 def artifact_list(request: HttpRequest) -> HttpResponse:
+    artifacts = request.user.artifacts.prefetch_related("tags")
+    all_tags = _all_tags(request)
+
+    active_tag = None
+    slug = request.GET.get("tag", "").strip()
+    if slug:
+        active_tag = next((tag for tag in all_tags if tag.slug == slug), None)
+        if active_tag is not None:
+            artifacts = artifacts.filter(tags__slug=slug).distinct()
+
     return render(
         request,
         "artifacts/list.html",
-        {"artifacts": request.user.artifacts.all()},
+        {"artifacts": artifacts, "all_tags": all_tags, "active_tag": active_tag},
     )
 
 
@@ -30,7 +53,7 @@ def artifact_detail(request: HttpRequest, slug: str) -> HttpResponse:
     return render(
         request,
         "artifacts/detail.html",
-        {"artifact": artifact, "share_url": share_url},
+        {"artifact": artifact, "share_url": share_url, "all_tags": _all_tags(request)},
     )
 
 
@@ -41,3 +64,41 @@ def artifact_shared(request: HttpRequest, share_token: str) -> HttpResponse:
         visibility=Visibility.UNLISTED,
     )
     return render(request, "artifacts/shared.html", {"artifact": artifact})
+
+
+def _tags_response(request: HttpRequest, artifact: Artifact) -> HttpResponse:
+    """Return the refreshed tag widget for HTMX, otherwise a redirect to detail."""
+    if request.headers.get("HX-Request"):
+        return render(
+            request,
+            "artifacts/_tags.html",
+            {"artifact": artifact, "all_tags": _all_tags(request), "editable": True},
+        )
+    return redirect("artifacts:detail", slug=artifact.slug)
+
+
+@login_required
+@require_POST
+def tag_add(request: HttpRequest, slug: str) -> HttpResponse:
+    artifact = get_object_or_404(Artifact, user=request.user, slug=slug)
+    name = request.POST.get("name", "")
+    if name.strip():
+        with suppress(services.TagError):
+            services.add_tags(artifact, [name])
+    return _tags_response(request, artifact)
+
+
+@login_required
+@require_POST
+def tag_remove(request: HttpRequest, slug: str, tag: str) -> HttpResponse:
+    artifact = get_object_or_404(Artifact, user=request.user, slug=slug)
+    services.remove_tags(artifact, [tag])
+    return _tags_response(request, artifact)
+
+
+@login_required
+@require_POST
+def tag_delete(request: HttpRequest, tag: str) -> HttpResponse:
+    tag_obj = get_object_or_404(Tag, user=request.user, slug=tag)
+    tag_obj.delete()
+    return redirect("artifacts:list")

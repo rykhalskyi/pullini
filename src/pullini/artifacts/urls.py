@@ -10,6 +10,9 @@ app_name = "artifacts"
 
 urlpatterns = [
     path("artifacts/", views.artifact_list, name="list"),
+    path("artifacts/<slug:slug>/tags/", views.tag_add, name="tag_add"),
+    path("artifacts/<slug:slug>/tags/<slug:tag>/remove/", views.tag_remove, name="tag_remove"),
     path("artifacts/<slug:slug>/", views.artifact_detail, name="detail"),
+    path("tags/<slug:tag>/delete/", views.tag_delete, name="tag_delete"),
     path("a/<str:share_token>/", views.artifact_shared, name="shared"),
 ]

@@ -7,6 +7,8 @@
   {{ artifacts|length }} artifact{{ artifacts|length|pluralize }}.
 </p>
 
+{% include "artifacts/_tag_filter.html" %}
+
 {% if artifacts %}
 <ul class="mt-8 space-y-3">
   {% for artifact in artifacts %}
@@ -29,6 +31,7 @@
     <p class="mt-1 text-xs text-ink/50">
       Updated {{ artifact.updated_at|date:"Y-m-d H:i" }} UTC
     </p>
+    {% include "artifacts/_tags.html" with artifact=artifact editable=False %}
   </li>
   {% endfor %}
 </ul>

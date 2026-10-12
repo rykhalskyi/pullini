@@ -273,6 +273,173 @@ def test_disallowed_methods_return_405(client):
     assert me.json()["error"] == "method_not_allowed"
 
 
+# --- tags ---------------------------------------------------------------------
+
+
+def test_create_with_tags_and_serialize(client):
+    user = make_user()
+    headers = bearer(user)
+
+    body = post_json(
+        client,
+        reverse("api:artifact_collection"),
+        {"title": "Report", "content": "# A", "tags": ["Work", "Weekly"]},
+        **headers,
+    ).json()
+
+    assert body["tags"] == ["Weekly", "Work"]  # ordered by name
+    listing = client.get(reverse("api:artifact_collection"), **headers).json()
+    assert listing["artifacts"][0]["tags"] == ["Weekly", "Work"]
+
+
+def test_put_replaces_tags_only_when_provided(client):
+    user = make_user()
+    headers = bearer(user)
+    post_json(
+        client,
+        reverse("api:artifact_collection"),
+        {"title": "Report", "content": "# A", "tags": ["Work"]},
+        **headers,
+    )
+    url = reverse("api:artifact_item", args=["report"])
+
+    kept = put_json(client, url, {"title": "Report", "content": "# A"}, **headers).json()
+    assert kept["tags"] == ["Work"]
+
+    replaced = put_json(
+        client, url, {"title": "Report", "content": "# A", "tags": ["Home"]}, **headers
+    ).json()
+    assert replaced["tags"] == ["Home"]
+
+
+def test_patch_tags_only_is_valid(client):
+    user = make_user()
+    headers = bearer(user)
+    post_json(
+        client,
+        reverse("api:artifact_collection"),
+        {"title": "Report", "content": "# Body"},
+        **headers,
+    )
+    url = reverse("api:artifact_item", args=["report"])
+
+    body = patch_json(client, url, {"tags": ["Work"]}, **headers).json()
+
+    assert body["tags"] == ["Work"]
+    assert body["content"] == "# Body"
+
+
+def test_patch_without_any_field_is_a_400(client):
+    user = make_user()
+    headers = bearer(user)
+    post_json(
+        client,
+        reverse("api:artifact_collection"),
+        {"title": "Report", "content": "# A"},
+        **headers,
+    )
+
+    response = patch_json(client, reverse("api:artifact_item", args=["report"]), {}, **headers)
+
+    assert response.status_code == 400
+    assert response.json()["error"] == "invalid_field"
+
+
+def test_list_filters_by_tag(client):
+    user = make_user()
+    headers = bearer(user)
+    post_json(
+        client,
+        reverse("api:artifact_collection"),
+        {"title": "Tagged", "content": "# A", "tags": ["Work"]},
+        **headers,
+    )
+    post_json(
+        client, reverse("api:artifact_collection"), {"title": "Plain", "content": ""}, **headers
+    )
+
+    listing = client.get(reverse("api:artifact_collection"), {"tag": "work"}, **headers).json()
+
+    assert [item["slug"] for item in listing["artifacts"]] == ["tagged"]
+
+    empty = client.get(reverse("api:artifact_collection"), {"tag": "missing"}, **headers).json()
+    assert empty["artifacts"] == []
+
+
+def test_tags_collection_and_delete(client):
+    user = make_user()
+    headers = bearer(user)
+    post_json(
+        client,
+        reverse("api:artifact_collection"),
+        {"title": "A", "content": "", "tags": ["Work", "Home"]},
+        **headers,
+    )
+    post_json(
+        client,
+        reverse("api:artifact_collection"),
+        {"title": "B", "content": "", "tags": ["Work"]},
+        **headers,
+    )
+
+    tags = client.get(reverse("api:tag_collection"), **headers).json()["tags"]
+    counts = {tag["slug"]: (tag["name"], tag["count"]) for tag in tags}
+    assert counts == {"home": ("Home", 1), "work": ("Work", 2)}
+
+    deleted = client.delete(reverse("api:tag_item", args=["work"]), **headers)
+    assert deleted.status_code == 204
+    assert client.get(reverse("api:tag_collection"), **headers).json()["tags"] == [
+        {"name": "Home", "slug": "home", "count": 1}
+    ]
+    assert client.delete(reverse("api:tag_item", args=["work"]), **headers).status_code == 404
+
+
+def test_tag_validation(client):
+    user = make_user()
+    headers = bearer(user)
+    collection = reverse("api:artifact_collection")
+
+    not_a_list = post_json(
+        client, collection, {"title": "A", "content": "", "tags": "x"}, **headers
+    )
+    assert not_a_list.status_code == 400
+    assert not_a_list.json()["error"] == "invalid_field"
+
+    too_many = post_json(
+        client,
+        collection,
+        {"title": "A", "content": "", "tags": [f"t{i}" for i in range(21)]},
+        **headers,
+    )
+    assert too_many.status_code == 400
+
+    too_long = post_json(
+        client, collection, {"title": "A", "content": "", "tags": ["x" * 51]}, **headers
+    )
+    assert too_long.status_code == 400
+
+
+def test_tags_are_isolated_between_users(client):
+    owner = make_user("owner")
+    other = make_user("other")
+    post_json(
+        client,
+        reverse("api:artifact_collection"),
+        {"title": "Mine", "content": "", "tags": ["Secret"]},
+        **bearer(owner),
+    )
+    other_headers = bearer(other)
+
+    assert client.get(reverse("api:tag_collection"), **other_headers).json()["tags"] == []
+    assert (
+        client.delete(reverse("api:tag_item", args=["secret"]), **other_headers).status_code == 404
+    )
+    filtered = client.get(
+        reverse("api:artifact_collection"), {"tag": "secret"}, **other_headers
+    ).json()
+    assert filtered["artifacts"] == []
+
+
 # --- agent skill --------------------------------------------------------------
 
 

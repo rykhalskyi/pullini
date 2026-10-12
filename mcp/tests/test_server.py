@@ -17,9 +17,9 @@ class FakeClient:
         self.calls: list[tuple] = []
         self.artifact: dict = {"slug": "notes", "title": "Notes", "share_url": None}
 
-    def create_artifact(self, title, content, visibility="private"):
-        self.calls.append(("create", title, content, visibility))
-        self.artifact = {"slug": "notes", "title": title, "share_url": None}
+    def create_artifact(self, title, content, visibility="private", tags=None):
+        self.calls.append(("create", title, content, visibility, tags))
+        self.artifact = {"slug": "notes", "title": title, "share_url": None, "tags": tags or []}
         return self.artifact
 
     def list_artifacts(self):
@@ -30,13 +30,25 @@ class FakeClient:
         self.calls.append(("get", slug))
         return self.artifact
 
-    def update_artifact(self, slug, *, title=None, content=None):
-        self.calls.append(("update", slug, title, content))
-        self.artifact = {**self.artifact, "slug": slug, "title": title or self.artifact["title"]}
+    def update_artifact(self, slug, *, title=None, content=None, tags=None):
+        self.calls.append(("update", slug, title, content, tags))
+        self.artifact = {
+            **self.artifact,
+            "slug": slug,
+            "title": title or self.artifact["title"],
+            "tags": tags if tags is not None else self.artifact.get("tags", []),
+        }
         return self.artifact
 
     def delete_artifact(self, slug):
         self.calls.append(("delete", slug))
+
+    def list_tags(self):
+        self.calls.append(("list_tags",))
+        return [{"name": "Notes", "slug": "notes", "count": 1}]
+
+    def delete_tag(self, slug):
+        self.calls.append(("delete_tag", slug))
 
     def share_artifact(self, slug, *, enable=True):
         self.calls.append(("share", slug, enable))
@@ -67,6 +79,8 @@ def test_tool_names_are_registered():
         "update_artifact",
         "delete_artifact",
         "share_artifact",
+        "list_tags",
+        "delete_tag",
     }
 
 
@@ -80,8 +94,16 @@ def test_store_creates_when_no_slug(fake):
     result = server.store_artifact("Notes", "# Notes", "unlisted")
 
     assert result["slug"] == "notes"
-    assert fake.calls[0] == ("create", "Notes", "# Notes", "unlisted")
+    assert fake.calls[0] == ("create", "Notes", "# Notes", "unlisted", None)
     assert fake.calls[-1] == ("close",)
+
+
+def test_store_passes_tags_on_create_and_overwrite(fake):
+    server.store_artifact("Notes", "# Notes", tags=["work"])
+    server.store_artifact("Notes", "# Notes", slug="notes", tags=["home"])
+
+    assert ("create", "Notes", "# Notes", "private", ["work"]) in fake.calls
+    assert ("update", "notes", "Notes", "# Notes", ["home"]) in fake.calls
 
 
 def test_store_rejects_bad_visibility(fake):
@@ -94,7 +116,7 @@ def test_store_rejects_bad_visibility(fake):
 def test_store_overwrites_and_shares_when_slug_given(fake):
     server.store_artifact("Notes", "# Notes", "unlisted", slug="notes")
 
-    assert ("update", "notes", "Notes", "# Notes") in fake.calls
+    assert ("update", "notes", "Notes", "# Notes", None) in fake.calls
     assert ("share", "notes", True) in fake.calls
 
 
@@ -115,13 +137,29 @@ def test_list_get_update_delete_share_delegate(fake):
     server.share_artifact("notes")
 
     assert ("get", "notes") in fake.calls
-    assert ("update", "notes", None, "# New") in fake.calls
+    assert ("update", "notes", None, "# New", None) in fake.calls
     assert ("delete", "notes") in fake.calls
     assert ("share", "notes", True) in fake.calls
 
 
+def test_update_passes_tags(fake):
+    server.update_artifact("notes", tags=["work", "urgent"])
+
+    assert ("update", "notes", None, None, ["work", "urgent"]) in fake.calls
+
+
 def test_delete_reports_confirmation(fake):
     assert server.delete_artifact("notes") == {"slug": "notes", "deleted": True}
+
+
+def test_list_tags_delegates(fake):
+    assert server.list_tags() == [{"name": "Notes", "slug": "notes", "count": 1}]
+    assert ("list_tags",) in fake.calls
+
+
+def test_delete_tag_reports_confirmation(fake):
+    assert server.delete_tag("notes") == {"slug": "notes", "deleted": True}
+    assert ("delete_tag", "notes") in fake.calls
 
 
 def test_revoke_share_returns_cleared_link(fake):

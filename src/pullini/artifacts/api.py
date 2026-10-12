@@ -8,13 +8,20 @@ from __future__ import annotations
 
 from importlib.resources import files
 
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from pullini.accounts.auth import require_token
-from pullini.api.http import ApiError, api_endpoint, isoformat, json_body, require_str
+from pullini.api.http import (
+    ApiError,
+    api_endpoint,
+    isoformat,
+    json_body,
+    parse_str_list,
+    require_str,
+)
 from pullini.artifacts import services
 from pullini.artifacts.models import Artifact, Visibility
 
@@ -36,6 +43,7 @@ def serialize_list_item(request: HttpRequest, artifact: Artifact) -> dict:
         "title": artifact.title,
         "visibility": artifact.visibility,
         "share_url": _share_url(request, artifact),
+        "tags": [tag.name for tag in artifact.tags.all()],
         "created_at": isoformat(artifact.created_at),
         "updated_at": isoformat(artifact.updated_at),
     }
@@ -69,7 +77,11 @@ def _visibility_from(data: dict) -> str:
 @require_http_methods(["GET", "POST"])
 def artifact_collection(request: HttpRequest):
     if request.method == "GET":
-        artifacts = request.user.artifacts.all()[:LIST_LIMIT]
+        artifacts = request.user.artifacts.all()
+        tag_slug = request.GET.get("tag", "").strip()
+        if tag_slug:
+            artifacts = artifacts.filter(tags__user=request.user, tags__slug=tag_slug)
+        artifacts = artifacts.prefetch_related("tags").distinct()[:LIST_LIMIT]
         return JsonResponse(
             {"artifacts": [serialize_list_item(request, artifact) for artifact in artifacts]}
         )
@@ -78,8 +90,13 @@ def artifact_collection(request: HttpRequest):
     title = require_str(data, "title")
     content = require_str(data, "content", allow_empty=True)
     visibility = _visibility_from(data)
-
-    artifact = services.create_artifact(request.user, title=title, content=content)
+    tags = parse_str_list(data, "tags")
+    try:
+        artifact = services.create_artifact(
+            request.user, title=title, content=content, visibility=visibility, tags=tags
+        )
+    except services.TagError as exc:
+        raise ApiError("invalid_field", str(exc)) from exc
     if visibility == Visibility.UNLISTED:
         services.generate_share_token(artifact)
     return JsonResponse(serialize_detail(request, artifact), status=201)
@@ -101,6 +118,7 @@ def artifact_item(request: HttpRequest, slug: str):
     data = json_body(request)
     title: str | None = None
     content: str | None = None
+    tags = parse_str_list(data, "tags")
     if request.method == "PUT":
         title = require_str(data, "title")
         content = require_str(data, "content", allow_empty=True)
@@ -109,15 +127,24 @@ def artifact_item(request: HttpRequest, slug: str):
             title = require_str(data, "title")
         if "content" in data:
             content = require_str(data, "content", allow_empty=True)
-        if title is None and content is None:
-            raise ApiError("invalid_field", 'Provide "title" and/or "content".')
+        if title is None and content is None and tags is None:
+            raise ApiError("invalid_field", 'Provide "title", "content" and/or "tags".')
+
+    if tags is not None:
+        try:
+            services.validate_tags(tags)  # reject bad input before mutating
+        except services.TagError as exc:
+            raise ApiError("invalid_field", str(exc)) from exc
 
     if title is not None:
         artifact.title = title
     if content is not None:
         services.save_artifact(artifact, content=content)
-    else:
+    elif title is not None:
         artifact.save(update_fields=["title", "updated_at"])
+    if tags is not None:
+        services.set_artifact_tags(artifact, tags)
+        artifact.save(update_fields=["updated_at"])
     return JsonResponse(serialize_detail(request, artifact))
 
 
@@ -130,6 +157,27 @@ def artifact_share(request: HttpRequest, slug: str):
         services.generate_share_token(artifact)
         return JsonResponse(serialize_detail(request, artifact))
     services.clear_share_token(artifact)
+    return HttpResponse(status=204)
+
+
+@require_token
+@api_endpoint
+@require_http_methods(["GET"])
+def tag_collection(request: HttpRequest):
+    """The token owner's tag vocabulary with per-tag artifact counts (D-37)."""
+    tags = services.tags_with_counts(request.user)
+    return JsonResponse(
+        {"tags": [{"name": tag.name, "slug": tag.slug, "count": tag.count} for tag in tags]}
+    )
+
+
+@require_token
+@api_endpoint
+@require_http_methods(["DELETE"])
+def tag_item(request: HttpRequest, slug: str):
+    """Delete one tag from the owner's vocabulary (``DELETE /api/tags/<slug>/``)."""
+    if not services.delete_tag(request.user, slug):
+        raise Http404("Not found.")
     return HttpResponse(status=204)
 
 

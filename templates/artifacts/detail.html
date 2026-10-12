@@ -16,6 +16,8 @@
     <span>{% if artifact.is_shared %}Unlisted share link{% else %}Private{% endif %}</span>
   </p>
 
+  {% include "artifacts/_tags.html" with artifact=artifact editable=True %}
+
   {% if share_url %}
   <div class="mt-6 rounded-xl border border-line bg-panel p-4">
     <p class="text-sm font-medium text-navy">Share link</p>

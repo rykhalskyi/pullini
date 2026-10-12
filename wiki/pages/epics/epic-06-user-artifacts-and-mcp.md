@@ -56,7 +56,8 @@ Favorites page.
 ## Data model
 
 - `PersonalAccessToken(user, name, prefix, token_hash, scopes, created_at, expires_at, last_used_at, revoked_at)`
-- `Artifact(user, title, slug, content, html, plain_text, content_hash, visibility, share_token, created_at, updated_at)`
+- `Artifact(user, title, slug, content, html, plain_text, content_hash, visibility, share_token, tags, created_at, updated_at)`
+- `Tag(user, name, slug, created_at)`, unique per `(user, slug)`; `Artifact.tags` M2M
 - `Favorite(user, page, created_at)`, unique per `(user, page)`
 
 ## Decisions
@@ -65,8 +66,9 @@ D-23 PAT over OAuth for agents · D-24 user-owned artifacts with unlisted sharin
 D-25 local stdio connector on PyPI · D-26 login-only favorites · D-27 non-staff
 reader role (extends D-03) · D-30 hashed tokens with public prefix, no scopes ·
 D-31 per-user artifact slugs frozen on create · D-32 Bearer auth and API-only share
-mutations · D-33 in-repo connector with Trusted Publishing. The deployment server
-stays WSGI as in D-09.
+mutations · D-33 in-repo connector with Trusted Publishing · D-37 persistent
+per-user tag vocabulary created lazily · D-38 tag metadata editable from the web
+while content stays API-only. The deployment server stays WSGI as in D-09.
 
 ## Tickets
 
@@ -77,6 +79,7 @@ stays WSGI as in D-09.
 - [T5 — Artifact REST API](../tickets/05-artifact-rest-api.md) — implemented
 - [T6 — pullini-mcp Connector](../tickets/06-pullini-mcp.md) — implemented
 - [T7 — Agent Skill API](../tickets/07-agent-skill-api.md) — implemented
+- [T8 — Artifact Tags](../tickets/08-artifact-tags.md) — implemented
 
 ## Outcome
 

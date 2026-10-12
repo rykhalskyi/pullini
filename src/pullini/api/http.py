@@ -74,3 +74,13 @@ def require_str(data: dict, key: str, *, allow_empty: bool = False) -> str:
     if not isinstance(value, str) or (not value.strip() and not allow_empty):
         raise ApiError("invalid_field", f'"{key}" must be a non-empty string.')
     return value
+
+
+def parse_str_list(data: dict, key: str) -> list[str] | None:
+    """Return the list of strings at ``key``, or ``None`` when the key is absent."""
+    if key not in data:
+        return None
+    value = data[key]
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        raise ApiError("invalid_field", f'"{key}" must be a list of strings.')
+    return value

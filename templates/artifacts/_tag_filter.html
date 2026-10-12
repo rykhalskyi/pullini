@@ -1,0 +1,28 @@
+{% if all_tags %}
+<div id="tag-filter" class="mt-6 flex flex-wrap items-center gap-2">
+  <a
+    href="{% url 'artifacts:list' %}"
+    class="rounded-full border px-3 py-1 text-xs font-medium {% if not active_tag %}border-brand bg-brand/10 text-brand{% else %}border-line bg-panel text-ink/70 transition-colors hover:border-brand/40{% endif %}"
+    >All</a
+  >
+  {% for tag in all_tags %}
+  <span
+    class="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium {% if active_tag and active_tag.slug == tag.slug %}border-brand bg-brand/10 text-brand{% else %}border-line bg-panel text-ink/70{% endif %}"
+  >
+    <a href="{% url 'artifacts:list' %}?tag={{ tag.slug }}" class="hover:text-brand"
+      >{{ tag.name }} <span class="text-ink/40">{{ tag.count }}</span></a
+    >
+    <form method="post" action="{% url 'artifacts:tag_delete' tag.slug %}" class="inline">
+      {% csrf_token %}
+      <button
+        type="submit"
+        aria-label="Delete tag {{ tag.name }}"
+        class="leading-none text-ink/40 transition-colors hover:text-git"
+      >
+        &times;
+      </button>
+    </form>
+  </span>
+  {% endfor %}
+</div>
+{% endif %}

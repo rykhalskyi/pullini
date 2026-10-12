@@ -27,11 +27,13 @@ GET    /api/me/                      who the token belongs to
 GET    /api/artifacts/               list your artifacts
 POST   /api/artifacts/               create an artifact
 GET    /api/artifacts/<slug>/        fetch one artifact (source + rendered HTML)
-PUT    /api/artifacts/<slug>/        replace title and content
-PATCH  /api/artifacts/<slug>/        update title and/or content
+PUT    /api/artifacts/<slug>/        replace title and content (tags optional)
+PATCH  /api/artifacts/<slug>/        update title, content and/or tags
 DELETE /api/artifacts/<slug>/        delete an artifact
 POST   /api/artifacts/<slug>/share/  enable the unlisted share link
 DELETE /api/artifacts/<slug>/share/  revoke the share link
+GET    /api/tags/                    list your tags with artifact counts
+DELETE /api/tags/<slug>/             delete a tag from your vocabulary
 ```
 
 ## Create
@@ -42,7 +44,8 @@ DELETE /api/artifacts/<slug>/share/  revoke the share link
 {
   "title": "Weekly Report",
   "content": "# Weekly Report\n\nAll good.",
-  "visibility": "private"
+  "visibility": "private",
+  "tags": ["reports", "weekly"]
 }
 ```
 
@@ -50,6 +53,9 @@ DELETE /api/artifacts/<slug>/share/  revoke the share link
 - `content` (string, required; Markdown source)
 - `visibility` (`"private"` or `"unlisted"`, optional; default `"private"`)
   - `"unlisted"` creates the artifact with an active share link.
+- `tags` (list of strings, optional; default `[]`). Each name is trimmed and
+  capped at 50 characters; at most 20 tags per artifact. Tags are created in
+  your per-user vocabulary on first use.
 
 Returns `201` with the artifact detail:
 
@@ -59,6 +65,7 @@ Returns `201` with the artifact detail:
   "title": "Weekly Report",
   "visibility": "private",
   "share_url": null,
+  "tags": ["reports", "weekly"],
   "content": "# Weekly Report\n\nAll good.",
   "html": "<h1 id=\"weekly-report\">Weekly Report</h1>\n<p>All good.</p>",
   "plain_text": "Weekly Report All good.",
@@ -74,18 +81,30 @@ stable.
 ## Read
 
 - `GET /api/artifacts/` returns `{"artifacts": [...]}` of list items
-  (`slug`, `title`, `visibility`, `share_url`, timestamps).
+  (`slug`, `title`, `visibility`, `share_url`, `tags`, timestamps).
 - `GET /api/artifacts/<slug>/` returns the full detail shown above.
+- `GET /api/artifacts/?tag=<slug>` filters to one tag of your vocabulary.
 
 List results are capped (no pagination).
 
 ## Update
 
-- `PUT /api/artifacts/<slug>/` replaces both fields: `{"title": ..., "content": ...}`.
-- `PATCH /api/artifacts/<slug>/` updates only what you send (`title` and/or
-  `content`).
+- `PUT /api/artifacts/<slug>/` replaces title and content:
+  `{"title": ..., "content": ...}`. An optional `tags` key replaces the tag set;
+  omitted, tags stay unchanged.
+- `PATCH /api/artifacts/<slug>/` updates only what you send (`title`, `content`
+  and/or `tags`); a `tags`-only body is valid.
 
-Updating `content` re-renders `html` and `plain_text`.
+Updating `content` re-renders `html` and `plain_text`. Sending `tags` replaces
+the whole set (use `[]` to clear it).
+
+## Tags
+
+- `GET /api/tags/` returns `{"tags": [{"name", "slug", "count"}]}` — your
+  persistent vocabulary, including tags with `count` `0`.
+- `DELETE /api/tags/<slug>/` deletes a tag everywhere and returns `204`. The
+  `slug` is the case-folded form of the name (e.g. `Weekly Report` →
+  `weekly-report`).
 
 ## Delete
 

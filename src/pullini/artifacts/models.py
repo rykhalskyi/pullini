@@ -20,6 +20,38 @@ class Visibility(models.TextChoices):
     UNLISTED = "unlisted", "Unlisted"
 
 
+class Tag(models.Model):
+    """A user-owned label that can be attached to many artifacts (E6, T8/D-37).
+
+    The vocabulary is per user and persistent: a tag exists until its owner
+    deletes it, even with no artifacts attached. ``name`` keeps the case the user
+    first created it with; ``slug`` is the normalized, case-folded identity used
+    for lookups and URLs.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="tags",
+    )
+    name = models.CharField(max_length=50)
+    slug = models.SlugField(max_length=60)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "slug"],
+                name="unique_tag_slug_per_user",
+            ),
+        ]
+        indexes = [models.Index(fields=["user", "name"])]
+
+    def __str__(self) -> str:
+        return f"{self.user}:{self.name}"
+
+
 class Artifact(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -44,6 +76,8 @@ class Artifact(models.Model):
     )
     # Set only while an unlisted share link is active; null otherwise.
     share_token = models.CharField(max_length=64, unique=True, null=True, blank=True)
+
+    tags = models.ManyToManyField(Tag, related_name="artifacts", blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
