@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from django.contrib import admin
 
-from pullini.artifacts.models import Artifact
+from pullini.artifacts.models import Artifact, Tag
 
 
 @admin.register(Artifact)
@@ -17,3 +17,10 @@ class ArtifactAdmin(admin.ModelAdmin):
     list_filter = ("visibility", "updated_at")
     search_fields = ("user__username", "title", "slug")
     readonly_fields = ("html", "plain_text", "content_hash", "created_at", "updated_at")
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ("user", "name", "slug", "created_at")
+    search_fields = ("user__username", "name", "slug")
+    readonly_fields = ("created_at",)

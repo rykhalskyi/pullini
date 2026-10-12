@@ -1,0 +1,70 @@
+{% if editable %}
+<div
+  id="artifact-tags-{{ artifact.slug }}"
+  class="mt-4 flex flex-wrap items-center gap-2"
+>
+  {% if error %}<p class="w-full text-xs text-git">{{ error }}</p>{% endif %}
+  {% for tag in artifact.tags.all %}
+  <div
+    class="inline-flex items-center gap-1 rounded-full border border-line bg-soft px-2.5 py-0.5 text-xs font-medium text-ink/70"
+  >
+    <a href="{% url 'artifacts:list' %}?tag={{ tag.slug }}" class="hover:text-brand">{{ tag.name }}</a>
+    <form
+      method="post"
+      action="{% url 'artifacts:tag_remove' artifact.slug tag.slug %}"
+      hx-post="{% url 'artifacts:tag_remove' artifact.slug tag.slug %}"
+      hx-target="#artifact-tags-{{ artifact.slug }}"
+      hx-swap="outerHTML"
+      class="inline"
+    >
+      {% csrf_token %}
+      <button
+        type="submit"
+        aria-label="Remove tag {{ tag.name }}"
+        class="leading-none text-ink/40 transition-colors hover:text-git"
+      >
+        &times;
+      </button>
+    </form>
+  </div>
+  {% endfor %}
+  <form
+    method="post"
+    action="{% url 'artifacts:tag_add' artifact.slug %}"
+    hx-post="{% url 'artifacts:tag_add' artifact.slug %}"
+    hx-target="#artifact-tags-{{ artifact.slug }}"
+    hx-swap="outerHTML"
+    class="inline-flex items-center gap-1"
+  >
+    {% csrf_token %}
+    <input
+      list="tag-options"
+      name="name"
+      placeholder="Add tag"
+      autocomplete="off"
+      aria-label="Add a tag"
+      class="w-32 rounded-md border border-line bg-panel px-2 py-1 text-xs text-ink placeholder:text-ink/40"
+    />
+    <button
+      type="submit"
+      class="rounded-md border border-line bg-panel px-2 py-1 text-xs font-medium text-navy transition-colors hover:bg-soft"
+    >
+      Add
+    </button>
+  </form>
+  <datalist id="tag-options">
+    {% for tag in all_tags %}<option value="{{ tag.name }}"></option>{% endfor %}
+  </datalist>
+</div>
+{% else %}
+{% if artifact.tags.all %}
+<div class="mt-4 flex flex-wrap items-center gap-2">
+  {% for tag in artifact.tags.all %}
+  <div
+    class="inline-flex items-center rounded-full border border-line bg-soft px-2.5 py-0.5 text-xs font-medium text-ink/70"
+    >{{ tag.name }}</div
+  >
+  {% endfor %}
+</div>
+{% endif %}
+{% endif %}

@@ -11,13 +11,16 @@ handles the host URL and token for you — never ask the user for either.
 
 ## Tools
 
-- `store_artifact(title, content, visibility="private", slug=None)` — create, or
-  overwrite when `slug` is given.
+- `store_artifact(title, content, visibility="private", slug=None, tags=None)` —
+  create, or overwrite when `slug` is given.
 - `list_artifacts()` — the artifacts you own.
 - `get_artifact(slug)` — source Markdown, rendered HTML and plain text.
-- `update_artifact(slug, title=None, content=None)` — change the title and/or content.
+- `update_artifact(slug, title=None, content=None, tags=None)` — change the
+  title, content and/or tags.
 - `delete_artifact(slug)` — delete one.
 - `share_artifact(slug, enable=True)` — enable/revoke the unlisted `share_url`.
+- `list_tags()` — your tag vocabulary (`name`, `slug`, `count`).
+- `delete_tag(tag)` — delete a tag by slug, everywhere.
 
 ## Workflow
 
@@ -32,3 +35,6 @@ handles the host URL and token for you — never ask the user for either.
   HTML is sanitized.
 - Keep `title` short; put structure in the Markdown headings.
 - `visibility` is `"private"` (default) or `"unlisted"`.
+- `tags` are plain string labels (≤50 chars, ≤20 per artifact) kept in a
+  per-user vocabulary. Passing `tags` replaces the whole set; `[]` clears it.
+  Use `list_tags()` to discover existing names.

@@ -38,6 +38,7 @@ def store_artifact(
     content: str,
     visibility: str = "private",
     slug: str | None = None,
+    tags: list[str] | None = None,
 ) -> dict:
     """Create an artifact, or overwrite the artifact identified by ``slug``.
 
@@ -46,19 +47,20 @@ def store_artifact(
         content: Markdown source; fenced ``mermaid`` blocks render as diagrams.
         visibility: ``"private"`` (default) or ``"unlisted"`` (active share link).
         slug: When given, overwrite that artifact instead of creating a new one.
+        tags: Optional list of tag names; replace the artifact's tags when given.
     """
     _check_visibility(visibility)
     client = _client()
     try:
         if slug:
-            artifact = client.update_artifact(slug, title=title, content=content)
+            artifact = client.update_artifact(slug, title=title, content=content, tags=tags)
             if visibility == "unlisted" and not artifact.get("share_url"):
                 artifact = client.share_artifact(slug) or artifact
             elif visibility == "private" and artifact.get("share_url"):
                 client.share_artifact(slug, enable=False)
                 artifact = client.get_artifact(slug)
             return artifact
-        return client.create_artifact(title, content, visibility)
+        return client.create_artifact(title, content, visibility, tags=tags)
     finally:
         client.close()
 
@@ -84,11 +86,37 @@ def get_artifact(slug: str) -> dict:
 
 
 @mcp.tool()
-def update_artifact(slug: str, title: str | None = None, content: str | None = None) -> dict:
-    """Change an artifact's title and/or content. The slug never changes."""
+def update_artifact(
+    slug: str,
+    title: str | None = None,
+    content: str | None = None,
+    tags: list[str] | None = None,
+) -> dict:
+    """Change an artifact's title, content and/or tags. The slug never changes."""
     client = _client()
     try:
-        return client.update_artifact(slug, title=title, content=content)
+        return client.update_artifact(slug, title=title, content=content, tags=tags)
+    finally:
+        client.close()
+
+
+@mcp.tool()
+def list_tags() -> list[dict]:
+    """List the tag vocabulary owned by the configured token (name, slug, count)."""
+    client = _client()
+    try:
+        return client.list_tags()
+    finally:
+        client.close()
+
+
+@mcp.tool()
+def delete_tag(tag: str) -> dict:
+    """Delete a tag from the vocabulary by its slug, detaching it everywhere."""
+    client = _client()
+    try:
+        client.delete_tag(tag)
+        return {"slug": tag, "deleted": True}
     finally:
         client.close()
 

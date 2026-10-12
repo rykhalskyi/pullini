@@ -84,6 +84,40 @@ def test_create_sends_title_content_and_visibility():
     assert '"visibility":"unlisted"' in captured["body"].replace(" ", "")
 
 
+def test_create_sends_tags_when_given():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = request.read().decode()
+        return json_response(201, {"slug": "notes"})
+
+    make_client(handler).create_artifact("Notes", "# Notes", tags=["work", "weekly"])
+
+    assert '"tags":["work","weekly"]' in captured["body"].replace(" ", "")
+
+
+def test_list_tags_unwraps_tags_mapping():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return json_response(200, {"tags": [{"name": "Work", "slug": "work", "count": 2}]})
+
+    tags = make_client(handler).list_tags()
+
+    assert tags == [{"name": "Work", "slug": "work", "count": 2}]
+
+
+def test_delete_tag_returns_none_on_204():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["method"] = request.method
+        captured["path"] = request.url.path
+        return httpx.Response(204)
+
+    assert make_client(handler).delete_tag("weekly-report") is None
+    assert captured["method"] == "DELETE"
+    assert captured["path"] == "/api/tags/weekly-report/"
+
+
 def test_list_unwraps_artifacts_mapping():
     def handler(request: httpx.Request) -> httpx.Response:
         return json_response(200, {"artifacts": [{"slug": "a"}, {"slug": "b"}]})
@@ -94,8 +128,20 @@ def test_list_unwraps_artifacts_mapping():
 def test_update_requires_a_field_before_requesting():
     client = make_client(lambda request: json_response(200, {}))
 
-    with pytest.raises(PulliniError, match="title and/or content"):
+    with pytest.raises(PulliniError, match="title, content and/or tags"):
         client.update_artifact("notes")
+
+
+def test_update_allows_tags_only():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = request.read().decode()
+        return json_response(200, {"slug": "notes", "tags": ["work"]})
+
+    make_client(handler).update_artifact("notes", tags=["work"])
+
+    assert captured["body"] == '{"tags":["work"]}'
 
 
 def test_update_patches_only_provided_fields():

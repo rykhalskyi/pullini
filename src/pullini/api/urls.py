@@ -15,4 +15,6 @@ urlpatterns = [
     path("artifacts/", artifacts_api.artifact_collection, name="artifact_collection"),
     path("artifacts/<slug:slug>/", artifacts_api.artifact_item, name="artifact_item"),
     path("artifacts/<slug:slug>/share/", artifacts_api.artifact_share, name="artifact_share"),
+    path("tags/", artifacts_api.tag_collection, name="tag_collection"),
+    path("tags/<str:slug>/", artifacts_api.tag_item, name="tag_item"),
 ]

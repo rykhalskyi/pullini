@@ -8,6 +8,7 @@
   <p class="mt-2 text-xs text-ink/60">
     Updated {{ artifact.updated_at|date:"Y-m-d H:i" }} UTC
   </p>
+  {% include "artifacts/_tags.html" with artifact=artifact editable=False %}
   <div class="wiki-content mt-8">{{ artifact.html|safe }}</div>
 </article>
 {% endblock %}
