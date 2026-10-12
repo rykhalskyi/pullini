@@ -4,6 +4,10 @@ Search is abstracted behind a small interface so the same code runs on SQLite
 (portable ORM matching) and PostgreSQL (native full-text search). The derived
 ``Page`` table *is* the index: it is regenerated when project content changes,
 so results are always current and no separate index service is required.
+
+Artifacts are searched from the authoritative ``Artifact`` table, whose derived
+``plain_text``/``html`` fields are already kept current. Artifacts are private
+to their owner, so artifact search is always scoped to ``user``.
 """
 
 from __future__ import annotations
@@ -14,6 +18,7 @@ from dataclasses import dataclass
 from django.db import connection
 from django.db.models import Q
 
+from pullini.artifacts.models import Artifact
 from pullini.wiki.models import Page
 
 SNIPPET_WIDTH = 200
@@ -21,13 +26,19 @@ SNIPPET_WIDTH = 200
 
 @dataclass
 class SearchResult:
-    page: Page
+    kind: str  # "page" | "artifact"
     rank: float
     snippet: str
+    page: Page | None = None
+    artifact: Artifact | None = None
 
 
 def _terms(query: str) -> list[str]:
     return [term for term in re.split(r"\s+", query.strip()) if term]
+
+
+def _is_authenticated(user) -> bool:
+    return user is not None and user.is_authenticated
 
 
 def make_snippet(text: str, terms: list[str], width: int = SNIPPET_WIDTH) -> str:
@@ -57,7 +68,7 @@ class SimpleSearchBackend:
 
     name = "simple"
 
-    def search(self, query: str, *, project=None, limit: int = 20) -> list[SearchResult]:
+    def search_pages(self, query: str, *, project=None, limit: int = 20) -> list[SearchResult]:
         terms = _terms(query)
         if not terms:
             return []
@@ -76,14 +87,46 @@ class SimpleSearchBackend:
             )
 
         scored = [
-            SearchResult(page, self._score(page, terms), make_snippet(page.plain_text, terms))
+            SearchResult(
+                "page",
+                self._score_page(page, terms),
+                make_snippet(page.plain_text, terms),
+                page=page,
+            )
             for page in pages.filter(match)[:500]
         ]
         scored.sort(key=lambda result: (-result.rank, result.page.title.lower()))
         return scored[:limit]
 
+    def search_artifacts(self, query: str, *, user, limit: int = 20) -> list[SearchResult]:
+        terms = _terms(query)
+        if not terms or not _is_authenticated(user):
+            return []
+
+        artifacts = Artifact.objects.filter(user=user).prefetch_related("tags")
+
+        match = Q()
+        for term in terms:
+            match &= (
+                Q(title__icontains=term)
+                | Q(plain_text__icontains=term)
+                | Q(tags__name__icontains=term)
+            )
+
+        scored = [
+            SearchResult(
+                "artifact",
+                self._score_artifact(artifact, terms),
+                make_snippet(artifact.plain_text, terms),
+                artifact=artifact,
+            )
+            for artifact in artifacts.filter(match).distinct()[:500]
+        ]
+        scored.sort(key=lambda result: (-result.rank, result.artifact.title.lower()))
+        return scored[:limit]
+
     @staticmethod
-    def _score(page: Page, terms: list[str]) -> float:
+    def _score_page(page: Page, terms: list[str]) -> float:
         title = page.title.lower()
         path = page.path.lower()
         body = page.plain_text.lower()
@@ -98,13 +141,27 @@ class SimpleSearchBackend:
             )
         )
 
+    @staticmethod
+    def _score_artifact(artifact: Artifact, terms: list[str]) -> float:
+        title = artifact.title.lower()
+        body = artifact.plain_text.lower()
+        tags = " ".join(tag.name.lower() for tag in artifact.tags.all())
+        return float(
+            sum(
+                5 * title.count(term.lower())
+                + 3 * tags.count(term.lower())
+                + body.count(term.lower())
+                for term in terms
+            )
+        )
+
 
 class PostgresSearchBackend(SimpleSearchBackend):
     """Native PostgreSQL full-text search (no extra infrastructure)."""
 
     name = "postgres"
 
-    def search(self, query: str, *, project=None, limit: int = 20) -> list[SearchResult]:
+    def search_pages(self, query: str, *, project=None, limit: int = 20) -> list[SearchResult]:
         from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 
         terms = _terms(query)
@@ -133,8 +190,46 @@ class PostgresSearchBackend(SimpleSearchBackend):
         )
 
         return [
-            SearchResult(page, float(page.rank or 0), make_snippet(page.plain_text, terms))
+            SearchResult(
+                "page",
+                float(page.rank or 0),
+                make_snippet(page.plain_text, terms),
+                page=page,
+            )
             for page in pages[:limit]
+        ]
+
+    def search_artifacts(self, query: str, *, user, limit: int = 20) -> list[SearchResult]:
+        from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+
+        terms = _terms(query)
+        if not terms or not _is_authenticated(user):
+            return []
+
+        vector = SearchVector("title", weight="A") + SearchVector("plain_text", weight="C")
+        search_query = SearchQuery(query, search_type="websearch")
+        artifacts = (
+            Artifact.objects.filter(user=user)
+            .prefetch_related("tags")
+            .annotate(rank=SearchRank(vector, search_query))
+            .filter(
+                Q(rank__gte=0.01)
+                | Q(title__icontains=query)
+                | Q(plain_text__icontains=query)
+                | Q(tags__name__icontains=query)
+            )
+            .distinct()
+            .order_by("-rank", "title")
+        )
+
+        return [
+            SearchResult(
+                "artifact",
+                float(artifact.rank or 0),
+                make_snippet(artifact.plain_text, terms),
+                artifact=artifact,
+            )
+            for artifact in artifacts[:limit]
         ]
 
 
