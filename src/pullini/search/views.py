@@ -6,12 +6,12 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 
 from pullini.projects.access import visible_projects
-from pullini.search.services import search_pages
+from pullini.search.services import search
 
 
 def _render_results(request: HttpRequest, project=None) -> HttpResponse:
     query = (request.GET.get("q") or "").strip()
-    results = search_pages(query, project=project)
+    results = search(query, user=request.user, project=project)
     return render(
         request,
         "search/results.html",

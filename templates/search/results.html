@@ -45,6 +45,29 @@
 <ul class="mt-4 divide-y divide-line rounded-xl border border-line bg-panel">
   {% for result in results %}
   <li>
+    {% if result.kind == "artifact" %}
+    <a
+      href="{{ result.artifact.get_absolute_url }}"
+      class="block px-5 py-4 transition-colors hover:bg-soft"
+    >
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <span class="font-medium text-navy">{{ result.artifact.title }}</span>
+        <span class="flex items-center gap-2 text-xs text-ink/50">
+          <span class="rounded-full border border-line bg-soft px-2 py-0.5 font-medium text-brand"
+            >Artifact</span
+          >
+          {% with tags=result.artifact.tags.all %}
+          {% if tags %}
+          <span class="font-mono"
+            >{% for tag in tags %}{{ tag.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</span
+          >
+          {% endif %}
+          {% endwith %}
+        </span>
+      </div>
+      <p class="mt-1 text-sm text-ink">{{ result.snippet }}</p>
+    </a>
+    {% else %}
     <a
       href="{% url 'wiki:page' result.page.project.slug result.page.url_path %}"
       class="block px-5 py-4 transition-colors hover:bg-soft"
@@ -58,12 +81,15 @@
       </div>
       <p class="mt-1 text-sm text-ink">{{ result.snippet }}</p>
     </a>
+    {% endif %}
   </li>
   {% empty %}
-  <li class="px-5 py-8 text-center text-sm text-ink/70">No pages matched your search.</li>
+  <li class="px-5 py-8 text-center text-sm text-ink/70">No results matched your search.</li>
   {% endfor %}
 </ul>
 {% else %}
-<p class="mt-6 text-sm text-ink/70">Type a query to search page titles, content and paths.</p>
+<p class="mt-6 text-sm text-ink/70">
+  Type a query to search page titles, content and paths, and your own artifacts.
+</p>
 {% endif %}
 {% endblock %}

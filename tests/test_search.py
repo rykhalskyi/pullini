@@ -3,13 +3,24 @@
 from __future__ import annotations
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.db import connection
 from django.urls import reverse
 
+from pullini.artifacts import services as artifact_services
 from pullini.projects.sync import sync_project
-from pullini.search.backends import SimpleSearchBackend, get_backend, make_snippet
+from pullini.search.backends import (
+    SimpleSearchBackend,
+    get_backend,
+    make_artifact_snippet,
+    make_snippet,
+)
 
 pytestmark = pytest.mark.django_db
+
+
+def make_user(username: str = "reader"):
+    return get_user_model().objects.create_user(username=username, password="s3cret-pass")
 
 
 def test_search_finds_page_by_content(client, project, remote_repo):
@@ -56,7 +67,7 @@ def test_search_excludes_disabled_projects(client, project):
 
     response = client.get(reverse("search:global"), {"q": "Home"})
 
-    assert b"No pages matched" in response.content
+    assert b"No results matched" in response.content
 
 
 def test_scoped_search_returns_results(client, project):
@@ -115,3 +126,120 @@ def test_postgres_full_text_search(client, project, remote_repo):
     response = client.get(reverse("search:global"), {"q": "zanzibar"})
 
     assert b"Guide" in response.content
+
+
+@pytest.mark.skipif(connection.vendor != "postgresql", reason="PostgreSQL only")
+def test_postgres_full_text_search_finds_artifact(client):
+    user = make_user()
+    artifact_services.create_artifact(
+        user, title="Protocol", content="# Protocol\n\nThe zanzibar protocol is documented here."
+    )
+    client.force_login(user)
+
+    response = client.get(reverse("search:global"), {"q": "zanzibar"})
+
+    assert b"Protocol" in response.content
+
+
+@pytest.mark.skipif(connection.vendor != "postgresql", reason="PostgreSQL only")
+def test_postgres_search_matches_artifact_tag(client):
+    user = make_user()
+    artifact_services.create_artifact(user, title="Report", content="# Report", tags=["zebra"])
+    client.force_login(user)
+
+    response = client.get(reverse("search:global"), {"q": "zebra"})
+
+    assert b"Report" in response.content
+
+
+def test_search_finds_own_artifact(client):
+    user = make_user()
+    artifact_services.create_artifact(
+        user, title="Widget Report", content="# Widget Report\n\nThe widget is ready."
+    )
+    client.force_login(user)
+
+    response = client.get(reverse("search:global"), {"q": "widget"})
+
+    assert response.status_code == 200
+    assert b"Widget Report" in response.content
+    assert b"Artifact" in response.content
+
+
+def test_search_matches_artifact_tag(client):
+    user = make_user()
+    artifact_services.create_artifact(user, title="Report", content="# Report", tags=["zebra"])
+    client.force_login(user)
+
+    response = client.get(reverse("search:global"), {"q": "zebra"})
+
+    assert b"Report" in response.content
+    assert b"Tagged: zebra" in response.content
+
+
+def test_artifact_tag_snippet_names_matched_tag():
+    user = make_user()
+    artifact = artifact_services.create_artifact(
+        user, title="Report", content="# Report\n\nNothing relevant here.", tags=["zebra"]
+    )
+
+    assert make_artifact_snippet(artifact, ["zebra"]) == "Tagged: zebra"
+
+
+def test_artifact_snippet_uses_body_when_it_matches():
+    user = make_user()
+    artifact = artifact_services.create_artifact(
+        user, title="Report", content="# Report\n\nThe widget is ready.", tags=["zebra"]
+    )
+
+    snippet = make_artifact_snippet(artifact, ["widget"])
+
+    assert "widget" in snippet
+    assert not snippet.startswith("Tagged:")
+
+
+def test_search_hides_other_users_artifacts(client):
+    owner = make_user("owner")
+    other = make_user("other")
+    artifact_services.create_artifact(
+        other, title="Secret Widget", content="# Secret Widget\n\nThe widget is hidden."
+    )
+    client.force_login(owner)
+
+    response = client.get(reverse("search:global"), {"q": "widget"})
+
+    assert b"Secret Widget" not in response.content
+
+
+def test_search_artifacts_require_login(client):
+    owner = make_user()
+    artifact_services.create_artifact(owner, title="Widget Report", content="# Widget Report")
+
+    response = client.get(reverse("search:global"), {"q": "widget"})
+
+    assert b"Widget Report" not in response.content
+
+
+def test_search_lists_artifacts_before_pages(client, project, remote_repo):
+    remote_repo.write("docs/guide/widgethub.md", "# Widgethub\n\nwidget widget\n")
+    sync_project(project, force=True)
+    user = make_user()
+    artifact_services.create_artifact(
+        user, title="Widget Notes", content="# Widget Notes\n\nwidget"
+    )
+    client.force_login(user)
+
+    response = client.get(reverse("search:global"), {"q": "widget"})
+
+    assert response.content.index(b"Widget Notes") < response.content.index(b"Widgethub")
+
+
+def test_scoped_search_excludes_artifacts(client, project, remote_repo):
+    sync_project(project, force=True)
+    user = make_user()
+    artifact_services.create_artifact(user, title="Widget Notes", content="# Widget Notes")
+    client.force_login(user)
+
+    response = client.get(reverse("search:project", args=[project.slug]), {"q": "widget"})
+
+    assert b"Widget Notes" not in response.content
