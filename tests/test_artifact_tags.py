@@ -59,6 +59,15 @@ def test_resolve_tags_dedupes_case_insensitively():
     assert len(services.resolve_tags(user, ["Work", "work", "WORK"])) == 1
 
 
+def test_non_latin_names_get_unicode_slugs():
+    user = make_user()
+
+    tags = services.resolve_tags(user, ["Привіт", "Café"])
+
+    assert {tag.slug for tag in tags} == {"привіт", "café"}
+    assert {tag.name for tag in tags} == {"Привіт", "Café"}
+
+
 @pytest.mark.parametrize("bad", ["", "   ", "!!!", "x" * (services.MAX_TAG_NAME + 1)])
 def test_invalid_names_raise(bad):
     user = make_user()
@@ -246,6 +255,58 @@ def test_tag_delete_is_owner_scoped(client):
     response = client.post(reverse("artifacts:tag_delete", args=["work"]))
 
     assert response.status_code == 404
+
+
+def test_unicode_tag_web_round_trip(client):
+    user = make_user("owner")
+    artifact = make_artifact(user)
+    client.force_login(user)
+    slug = "привіт"
+
+    added = client.post(reverse("artifacts:tag_add", args=[artifact.slug]), {"name": "Привіт"})
+    assert added.status_code == 302
+    assert artifact.tags.filter(slug=slug).exists()
+
+    removed = client.post(reverse("artifacts:tag_remove", args=[artifact.slug, slug]))
+    assert removed.status_code == 302
+    assert artifact.tags.count() == 0
+    assert Tag.objects.filter(user=user, slug=slug).exists()
+
+    deleted = client.post(reverse("artifacts:tag_delete", args=[slug]))
+    assert deleted.status_code == 302
+    assert not Tag.objects.filter(user=user, slug=slug).exists()
+
+
+def test_tag_add_reports_a_validation_error(client):
+    user = make_user("owner")
+    artifact = make_artifact(user)
+    client.force_login(user)
+
+    response = client.post(
+        reverse("artifacts:tag_add", args=[artifact.slug]),
+        {"name": "x" * (services.MAX_TAG_NAME + 1)},
+        follow=True,
+    )
+
+    assert response.status_code == 200
+    assert b"at most 50 characters" in response.content
+    assert artifact.tags.count() == 0
+
+
+def test_tag_add_reports_the_error_in_the_htmx_partial(client):
+    user = make_user("owner")
+    artifact = make_artifact(user)
+    client.force_login(user)
+
+    response = client.post(
+        reverse("artifacts:tag_add", args=[artifact.slug]),
+        {"name": "x" * (services.MAX_TAG_NAME + 1)},
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == 200
+    assert b"at most 50 characters" in response.content
+    assert artifact.tags.count() == 0
 
 
 def test_tag_endpoints_reject_get(client):

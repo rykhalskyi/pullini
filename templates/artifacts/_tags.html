@@ -3,8 +3,9 @@
   id="artifact-tags-{{ artifact.slug }}"
   class="mt-4 flex flex-wrap items-center gap-2"
 >
+  {% if error %}<p class="w-full text-xs text-git">{{ error }}</p>{% endif %}
   {% for tag in artifact.tags.all %}
-  <span
+  <div
     class="inline-flex items-center gap-1 rounded-full border border-line bg-soft px-2.5 py-0.5 text-xs font-medium text-ink/70"
   >
     <a href="{% url 'artifacts:list' %}?tag={{ tag.slug }}" class="hover:text-brand">{{ tag.name }}</a>
@@ -25,7 +26,7 @@
         &times;
       </button>
     </form>
-  </span>
+  </div>
   {% endfor %}
   <form
     method="post"
@@ -59,9 +60,9 @@
 {% if artifact.tags.all %}
 <div class="mt-4 flex flex-wrap items-center gap-2">
   {% for tag in artifact.tags.all %}
-  <span
+  <div
     class="inline-flex items-center rounded-full border border-line bg-soft px-2.5 py-0.5 text-xs font-medium text-ink/70"
-    >{{ tag.name }}</span
+    >{{ tag.name }}</div
   >
   {% endfor %}
 </div>

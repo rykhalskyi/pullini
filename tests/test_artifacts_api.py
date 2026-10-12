@@ -440,6 +440,28 @@ def test_tags_are_isolated_between_users(client):
     assert filtered["artifacts"] == []
 
 
+def test_unicode_tags_round_trip(client):
+    user = make_user()
+    headers = bearer(user)
+    collection = reverse("api:artifact_collection")
+
+    body = post_json(
+        client,
+        collection,
+        {"title": "Report", "content": "", "tags": ["Привіт", "Café"]},
+        **headers,
+    ).json()
+    assert set(body["tags"]) == {"Привіт", "Café"}
+
+    filtered = client.get(collection, {"tag": "привіт"}, **headers).json()
+    assert [item["slug"] for item in filtered["artifacts"]] == ["report"]
+
+    assert client.delete(reverse("api:tag_item", args=["привіт"]), **headers).status_code == 204
+    assert client.get(reverse("api:tag_collection"), **headers).json()["tags"] == [
+        {"name": "Café", "slug": "café", "count": 1}
+    ]
+
+
 # --- agent skill --------------------------------------------------------------
 
 

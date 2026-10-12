@@ -40,7 +40,7 @@ def normalize_tag(name: str) -> str:
 def _tag_slug(name: str) -> str:
     """Case-folded, URL-safe identity for a tag name (D-37)."""
     normalized = normalize_tag(name)
-    slug = slugify(normalized)[:_TAG_SLUG_MAX]
+    slug = slugify(normalized, allow_unicode=True)[:_TAG_SLUG_MAX]
     if not slug:
         raise TagError("Tag name must contain letters or numbers.")
     return slug

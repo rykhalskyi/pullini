@@ -7,8 +7,7 @@ surface lets their owner attach, detach and delete them (D-38).
 
 from __future__ import annotations
 
-from contextlib import suppress
-
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -66,13 +65,20 @@ def artifact_shared(request: HttpRequest, share_token: str) -> HttpResponse:
     return render(request, "artifacts/shared.html", {"artifact": artifact})
 
 
-def _tags_response(request: HttpRequest, artifact: Artifact) -> HttpResponse:
+def _tags_response(
+    request: HttpRequest, artifact: Artifact, error: str | None = None
+) -> HttpResponse:
     """Return the refreshed tag widget for HTMX, otherwise a redirect to detail."""
     if request.headers.get("HX-Request"):
         return render(
             request,
             "artifacts/_tags.html",
-            {"artifact": artifact, "all_tags": _all_tags(request), "editable": True},
+            {
+                "artifact": artifact,
+                "all_tags": _all_tags(request),
+                "editable": True,
+                "error": error,
+            },
         )
     return redirect("artifacts:detail", slug=artifact.slug)
 
@@ -82,10 +88,13 @@ def _tags_response(request: HttpRequest, artifact: Artifact) -> HttpResponse:
 def tag_add(request: HttpRequest, slug: str) -> HttpResponse:
     artifact = get_object_or_404(Artifact, user=request.user, slug=slug)
     name = request.POST.get("name", "")
-    if name.strip():
-        with suppress(services.TagError):
-            services.add_tags(artifact, [name])
-    return _tags_response(request, artifact)
+    error = None
+    try:
+        services.add_tags(artifact, [name])
+    except services.TagError as exc:
+        error = str(exc)
+        messages.error(request, error)
+    return _tags_response(request, artifact, error=error)
 
 
 @login_required

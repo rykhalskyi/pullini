@@ -6,7 +6,7 @@
     >All</a
   >
   {% for tag in all_tags %}
-  <span
+  <div
     class="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium {% if active_tag and active_tag.slug == tag.slug %}border-brand bg-brand/10 text-brand{% else %}border-line bg-panel text-ink/70{% endif %}"
   >
     <a href="{% url 'artifacts:list' %}?tag={{ tag.slug }}" class="hover:text-brand"
@@ -22,7 +22,7 @@
         &times;
       </button>
     </form>
-  </span>
+  </div>
   {% endfor %}
 </div>
 {% endif %}
