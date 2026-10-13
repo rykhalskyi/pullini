@@ -181,6 +181,105 @@ def test_share_enable_posts_and_revoke_deletes():
     assert methods == ["POST", "DELETE"]
 
 
+# --- pages & quizzes ----------------------------------------------------------
+
+
+def test_list_pages_passes_project_filter():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["path"] = request.url.path
+        captured["query"] = request.url.query.decode()
+        return json_response(200, {"pages": [{"project": "payments", "path": "index.md"}]})
+
+    pages = make_client(handler).list_pages("payments")
+
+    assert pages == [{"project": "payments", "path": "index.md"}]
+    assert captured["path"] == "/api/pages/"
+    assert captured["query"] == "project=payments"
+
+
+def test_list_pages_without_filter_has_no_query():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["query"] = request.url.query.decode()
+        return json_response(200, {"pages": []})
+
+    make_client(handler).list_pages()
+
+    assert captured["query"] == ""
+
+
+def test_get_page_keeps_path_slashes():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["path"] = request.url.path
+        return json_response(200, {"path": "guide/setup.md", "content": "# Setup"})
+
+    page = make_client(handler).get_page("payments", "guide/setup.md")
+
+    assert page["content"] == "# Setup"
+    assert captured["path"] == "/api/pages/payments/guide/setup.md/"
+
+
+def test_create_quiz_sends_target_and_questions():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["method"] = request.method
+        captured["body"] = request.read().decode()
+        return json_response(201, {"id": 1})
+
+    client = make_client(handler)
+    client.create_quiz(
+        questions=[{"text": "Q", "options": ["a", "b"], "correct_index": 0}],
+        page={"project": "payments", "path": "guide/setup.md"},
+    )
+
+    assert captured["method"] == "POST"
+    body = captured["body"].replace(" ", "")
+    assert '"page":{"project":"payments","path":"guide/setup.md"}' in body
+    assert '"questions":[{"text":"Q","options":["a","b"],"correct_index":0}]' in body
+    assert "artifact" not in body
+
+
+def test_create_quiz_for_an_artifact():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = request.read().decode()
+        return json_response(201, {"id": 2})
+
+    make_client(handler).create_quiz(questions=[], artifact="report")
+
+    assert '"artifact":"report"' in captured["body"].replace(" ", "")
+
+
+def test_list_quizzes_unwraps_mapping():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return json_response(200, {"quizzes": [{"id": 1}, {"id": 2}]})
+
+    assert [quiz["id"] for quiz in make_client(handler).list_quizzes()] == [1, 2]
+
+
+def test_get_and_delete_quiz_paths():
+    seen = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append((request.method, request.url.path))
+        if request.method == "DELETE":
+            return httpx.Response(204)
+        return json_response(200, {"id": 7})
+
+    client = make_client(handler)
+    assert client.get_quiz(7)["id"] == 7
+    assert client.delete_quiz(7) is None
+
+    assert seen == [("GET", "/api/quizzes/7/"), ("DELETE", "/api/quizzes/7/")]
+
+
 # --- errors -------------------------------------------------------------------
 
 

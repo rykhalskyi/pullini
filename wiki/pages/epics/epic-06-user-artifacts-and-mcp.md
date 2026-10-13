@@ -85,7 +85,7 @@ content. The deployment server stays WSGI as in D-09.
 - [T8 — Artifact Tags](../tickets/08-artifact-tags.md) — implemented
 - [T9 — Quizzes (core)](../tickets/09-quizzes.md) — implemented
 - [T10 — Quizzes REST API](../tickets/10-quizzes-api.md) — implemented
-- [T11 — Quizzes MCP tools](../tickets/11-quizzes-mcp.md) — proposed
+- [T11 — Quizzes MCP tools](../tickets/11-quizzes-mcp.md) — implemented
 
 ## Outcome
 

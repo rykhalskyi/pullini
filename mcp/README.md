@@ -2,7 +2,8 @@
 
 A local **stdio** [MCP](https://modelcontextprotocol.io) connector that lets an
 agent create, read, update, delete and share [Pullini](https://github.com/rykhalskyi/pullini)
-artifacts over the authenticated artifact REST API.
+artifacts, and generate self-study quizzes about wiki pages or artifacts, over the
+authenticated artifact REST API.
 
 The connector runs on the agent's machine. It reads its configuration from the
 environment and needs no ASGI or OAuth infrastructure on the Pullini host
@@ -84,10 +85,21 @@ at the `mcp/` folder of your clone.
 | `update_artifact` | Change an artifact's title and/or content.                     |
 | `delete_artifact` | Delete an artifact.                                            |
 | `share_artifact`  | Enable or revoke the unlisted share link.                      |
+| `list_pages`      | List readable wiki pages, optionally for one project.          |
+| `get_page`        | Fetch one wiki page's source Markdown.                         |
+| `create_quiz`     | Create or replace a quiz for one page or artifact.             |
+| `get_quiz`        | Fetch one quiz (questions and your scores).                    |
+| `list_quizzes`    | List the token owner's quizzes.                                |
+| `delete_quiz`     | Delete a quiz.                                                 |
 
 `content` is Markdown; fenced ` ```mermaid ` blocks render as diagrams. Artifacts
 are **private by default**: `share_artifact` returns a read-only `share_url`
 anyone with the link can open, and revoking clears it.
+
+Quizzes are private and self-study: fetch a page with `get_page`, write up to 10
+multiple-choice questions and pass them to `create_quiz` with either a
+`page={"project", "path"}` or an `artifact` slug target. Creating again for the
+same target replaces it; read scores back from `get_quiz`/`list_quizzes`.
 
 ## Development
 

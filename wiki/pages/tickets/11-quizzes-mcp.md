@@ -1,7 +1,7 @@
 ---
 created: 2026-10-12
 type: ticket
-status: proposed
+status: implemented
 summary: T11 — quizzes MCP tools: connector methods and tools for page reads and quiz create/get/list/delete, plus skill docs.
 ---
 
@@ -57,4 +57,25 @@ content; tool surface mirrors the T10 endpoints 1:1 (D-25, D-33).
 
 ## Outcome
 
-Not yet implemented.
+Shipped.
+
+- `mcp/src/pullini_mcp/client.py`: `list_pages(project=None)`,
+  `get_page(project, path)`, `create_quiz(questions, page=None, artifact=None)`,
+  `get_quiz(id)`, `list_quizzes()` and `delete_quiz(id)` over the T10 endpoints;
+  `_send`/`_request` gained query-`params` support. Paths keep their slashes.
+- `mcp/src/pullini_mcp/server.py`: the six tools registered; `create_quiz`
+  rejects anything but exactly one of `page`/`artifact` with a readable
+  `PulliniError`.
+- Skills: the connector's `skill.md` gains a "Quizzes" flow; the API-served
+  `src/pullini/artifacts/skill.md` documents the `/api/pages/` and `/api/quizzes/`
+  endpoints (extended in place rather than adding a separate endpoint).
+- `mcp/README.md`: intro + tools table document the new page/quiz tools.
+- Tests: page/quiz cases added to `mcp/tests/test_client.py` (paths, query,
+  targets) and `mcp/tests/test_server.py` (registry, delegation, target check).
+
+Verification: `mcp` `uv run pytest` → 42 passed; `mcp` ruff check/format clean;
+root `uv run pytest` → 289 passed, 3 skipped; root ruff clean.
+
+Remaining: the connector is prepared for release as `0.8.0` (`mcp/pyproject.toml` +
+`__init__.py`) and tagged `mcp-v0.8.0`; pushing the tag publishes via
+[Trusted Publishing](06-pullini-mcp.md).

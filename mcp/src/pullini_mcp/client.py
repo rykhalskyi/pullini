@@ -82,9 +82,10 @@ class PulliniClient:
         *,
         json: dict | None = None,
         headers: dict[str, str] | None = None,
+        params: dict[str, str] | None = None,
     ) -> httpx.Response:
         try:
-            response = self._client.request(method, path, json=json, headers=headers)
+            response = self._client.request(method, path, json=json, headers=headers, params=params)
         except httpx.HTTPError as exc:
             raise PulliniError(
                 f"Could not reach Pullini at {self._config.base_url}: {exc}"
@@ -93,8 +94,15 @@ class PulliniClient:
             raise self._error(response)
         return response
 
-    def _request(self, method: str, path: str, *, json: dict | None = None) -> Any:
-        response = self._send(method, path, json=json)
+    def _request(
+        self,
+        method: str,
+        path: str,
+        *,
+        json: dict | None = None,
+        params: dict[str, str] | None = None,
+    ) -> Any:
+        response = self._send(method, path, json=json, params=params)
         if response.status_code == 204 or not response.content:
             return None
         return response.json()
@@ -186,3 +194,45 @@ class PulliniClient:
         """Enable or revoke the unlisted share link (``POST``/``DELETE .../share/``)."""
         method = "POST" if enable else "DELETE"
         return self._request(method, f"/api/artifacts/{quote(slug)}/share/")
+
+    # --- pages ---------------------------------------------------------------
+
+    def list_pages(self, project: str | None = None) -> list[dict]:
+        """List readable wiki pages, optionally for one project (``GET /api/pages/``)."""
+        params = {"project": project} if project else None
+        payload = self._request("GET", "/api/pages/", params=params)
+        return payload.get("pages", [])
+
+    def get_page(self, project: str, path: str) -> dict:
+        """Return one wiki page's source Markdown (``GET /api/pages/<project>/<path>/``)."""
+        return self._request("GET", f"/api/pages/{quote(project)}/{quote(path, safe='/')}/")
+
+    # --- quizzes -------------------------------------------------------------
+
+    def list_quizzes(self) -> list[dict]:
+        """Return the token owner's quizzes (``GET /api/quizzes/``)."""
+        payload = self._request("GET", "/api/quizzes/")
+        return payload.get("quizzes", [])
+
+    def get_quiz(self, quiz_id: int) -> dict:
+        """Return one quiz with its questions and scores (``GET /api/quizzes/<id>/``)."""
+        return self._request("GET", f"/api/quizzes/{quiz_id}/")
+
+    def create_quiz(
+        self,
+        *,
+        questions: list[dict],
+        page: dict | None = None,
+        artifact: str | None = None,
+    ) -> dict:
+        """Create or replace the quiz for one page or artifact (``POST /api/quizzes/``)."""
+        body: dict[str, Any] = {"questions": questions}
+        if page is not None:
+            body["page"] = page
+        if artifact is not None:
+            body["artifact"] = artifact
+        return self._request("POST", "/api/quizzes/", json=body)
+
+    def delete_quiz(self, quiz_id: int) -> None:
+        """Delete a quiz (``DELETE /api/quizzes/<id>/``)."""
+        self._request("DELETE", f"/api/quizzes/{quiz_id}/")

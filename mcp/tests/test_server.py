@@ -58,6 +58,29 @@ class FakeClient:
         }
         return self.artifact if enable else None
 
+    def list_pages(self, project=None):
+        self.calls.append(("list_pages", project))
+        return [{"project": "payments", "path": "index.md"}]
+
+    def get_page(self, project, path):
+        self.calls.append(("get_page", project, path))
+        return {"project": project, "path": path, "content": "# Page"}
+
+    def create_quiz(self, *, questions, page=None, artifact=None):
+        self.calls.append(("create_quiz", questions, page, artifact))
+        return {"id": 1, "questions": questions}
+
+    def get_quiz(self, quiz_id):
+        self.calls.append(("get_quiz", quiz_id))
+        return {"id": quiz_id, "questions": []}
+
+    def list_quizzes(self):
+        self.calls.append(("list_quizzes",))
+        return [{"id": 1}]
+
+    def delete_quiz(self, quiz_id):
+        self.calls.append(("delete_quiz", quiz_id))
+
     def close(self):
         self.calls.append(("close",))
 
@@ -81,6 +104,12 @@ def test_tool_names_are_registered():
         "share_artifact",
         "list_tags",
         "delete_tag",
+        "list_pages",
+        "get_page",
+        "create_quiz",
+        "get_quiz",
+        "list_quizzes",
+        "delete_quiz",
     }
 
 
@@ -164,6 +193,46 @@ def test_delete_tag_reports_confirmation(fake):
 
 def test_revoke_share_returns_cleared_link(fake):
     assert server.share_artifact("notes", enable=False) == {"slug": "notes", "share_url": None}
+
+
+def test_page_tools_delegate(fake):
+    assert server.list_pages("payments") == [{"project": "payments", "path": "index.md"}]
+    server.get_page("payments", "index.md")
+
+    assert ("list_pages", "payments") in fake.calls
+    assert ("get_page", "payments", "index.md") in fake.calls
+
+
+def test_create_quiz_delegates(fake):
+    questions = [{"text": "Q", "options": ["a", "b"], "correct_index": 0}]
+
+    server.create_quiz(questions, page={"project": "payments", "path": "index.md"})
+
+    assert (
+        "create_quiz",
+        questions,
+        {"project": "payments", "path": "index.md"},
+        None,
+    ) in fake.calls
+
+
+def test_create_quiz_requires_exactly_one_target(fake):
+    with pytest.raises(PulliniError, match="exactly one"):
+        server.create_quiz([], page={"project": "p", "path": "x.md"}, artifact="a")
+    with pytest.raises(PulliniError, match="exactly one"):
+        server.create_quiz([])
+
+    assert fake.calls == []
+
+
+def test_quiz_read_and_delete_delegate(fake):
+    server.get_quiz(1)
+    assert server.list_quizzes() == [{"id": 1}]
+    assert server.delete_quiz(1) == {"id": 1, "deleted": True}
+
+    assert ("get_quiz", 1) in fake.calls
+    assert ("list_quizzes",) in fake.calls
+    assert ("delete_quiz", 1) in fake.calls
 
 
 def test_skill_resource_is_registered():

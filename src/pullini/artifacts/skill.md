@@ -34,6 +34,13 @@ POST   /api/artifacts/<slug>/share/  enable the unlisted share link
 DELETE /api/artifacts/<slug>/share/  revoke the share link
 GET    /api/tags/                    list your tags with artifact counts
 DELETE /api/tags/<slug>/             delete a tag from your vocabulary
+GET    /api/pages/                   list readable wiki pages (?project=<slug>)
+GET    /api/pages/<project>/<path>/  fetch a wiki page's source Markdown
+GET    /api/quizzes/                 list your quizzes
+POST   /api/quizzes/                 create or replace a quiz
+GET    /api/quizzes/<id>/            fetch one quiz (questions + your scores)
+DELETE /api/quizzes/<id>/            delete a quiz
+POST   /api/quizzes/<id>/attempts/   submit answers, get the score
 ```
 
 ## Create
@@ -122,6 +129,34 @@ the whole set (use `[]` to clear it).
 - `content` is Markdown. Fenced blocks tagged `mermaid` render as diagrams.
 - Raw HTML is sanitized; scripts and event handlers are stripped.
 - Keep `title` short; put structure in the Markdown headings.
+
+## Pages & quizzes
+
+A quiz is a private, self-study multiple-choice quiz about exactly one wiki page
+or one artifact. Read the source first, then create the quiz.
+
+- `GET /api/pages/?project=<slug>` lists readable pages; `GET
+  /api/pages/<project>/<path>/` returns one page's source `content` (use it to
+  write grounded questions).
+- `POST /api/quizzes/` targets exactly one source and takes a `questions` list:
+
+  ```json
+  {
+    "page": {"project": "payments", "path": "guide/setup.md"},
+    "questions": [
+      {"text": "What port?", "options": ["80", "443"], "correct_index": 1,
+       "explanation": "TLS is on 443."}
+    ]
+  }
+  ```
+
+  Or target an artifact with `{"artifact": "<slug>", "questions": [...]}`.
+  Up to 10 questions; each needs 2–6 `options` and an in-range `correct_index`
+  (an optional `explanation`). Creating again for the same target **replaces**
+  it (`200`), a first create returns `201`.
+- `POST /api/quizzes/<id>/attempts/` with `{"answers": [1, 0, ...]}` scores your
+  answers and returns `score`, `total`, `last_score`, `best_score` and per-question
+  correctness.
 
 ## Errors
 
