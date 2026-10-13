@@ -29,6 +29,9 @@
 - [tickets/09-quizzes](pages/tickets/09-quizzes.md) — T9 — quizzes core: Quiz/Question models, validation/scoring services and the read-only web surface (take, score, badges).
 - [tickets/10-quizzes-api](pages/tickets/10-quizzes-api.md) — T10 — quizzes REST API: token-gated quiz CRUD, attempt scoring and the page-read endpoints an agent needs to generate quizzes.
 - [tickets/11-quizzes-mcp](pages/tickets/11-quizzes-mcp.md) — T11 — quizzes MCP tools: connector methods and tools for page reads and quiz create/get/list/delete, plus skill docs.
+- [tickets/12-qanda-core](pages/tickets/12-qanda-core.md) — T12 — Q&A core: QandA/QandAItem models, validation/upsert services and the read-only static FAQ web surface for a wiki page or artifact.
+- [tickets/13-qanda-api](pages/tickets/13-qanda-api.md) — T13 — Q&A REST API: token-gated Q&A set CRUD over the T12 domain, mirroring the quizzes endpoints.
+- [tickets/14-qanda-mcp](pages/tickets/14-qanda-mcp.md) — T14 — Q&A MCP tools: connector methods and tools for Q&A create/get/list/delete, plus skill and README docs.
 
 ## Research
 - [research/design-guidelines](pages/research/design-guidelines.md) — UI/UX design guidelines — tone, color palette, typography, components, and Git visual language.
