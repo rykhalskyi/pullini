@@ -31,9 +31,16 @@
     <p class="mt-1 text-xs text-ink/60">
       Last score {{ result.last_score }}/{{ result.total }} · Best {{ result.best_score }}/{{ result.total }}
     </p>
-    <a href="{% url 'quizzes:detail' quiz.pk %}" class="mt-3 inline-block text-sm font-medium text-brand hover:underline"
-      >Retake</a
-    >
+    <div class="mt-4 flex flex-wrap items-center gap-3">
+      <a
+        href="{{ quiz.source_url }}"
+        class="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90"
+        >Back to article</a
+      >
+      <a href="{% url 'quizzes:detail' quiz.pk %}" class="text-sm font-medium text-brand hover:underline"
+        >Retake</a
+      >
+    </div>
   </div>
   {% endif %}
 

@@ -294,6 +294,23 @@ def test_quiz_submit_scores_and_renders(client):
     assert quiz.best_score == 2
 
 
+def test_quiz_submit_shows_back_to_article(client):
+    user = make_user()
+    client.force_login(user)
+    project = make_project()
+    page = make_page(project, path="index.md", title="Home")
+    quiz = services.create_quiz(user, page=page, questions=[q(correct=0)])
+
+    response = client.post(
+        reverse("quizzes:submit", args=[quiz.pk]),
+        {"answer-0": "0"},
+    )
+
+    assert response.status_code == 200
+    assert b"Back to article" in response.content
+    assert reverse("wiki:page", args=[project.slug, page.url_path]).encode() in response.content
+
+
 def test_wiki_page_shows_quiz_button_and_score(client):
     user = make_user()
     project = make_project()
@@ -317,6 +334,20 @@ def test_wiki_page_shows_no_quiz_hint(client):
     content = client.get(reverse("wiki:page", args=[project.slug, page.url_path])).content
 
     assert b"No quiz yet" in content
+    assert b"Create a quiz" in content
+    assert f"{project.slug}/{page.path}".encode() in content
+
+
+def test_artifact_detail_no_quiz_hint_copies_slug(client):
+    user = make_user()
+    artifact = make_artifact(user)
+    client.force_login(user)
+
+    content = client.get(reverse("artifacts:detail", args=[artifact.slug])).content
+
+    assert b"Create a quiz" in content
+    assert b"data-quiz-ref" in content
+    assert b"data-copy-quiz-ref" in content
 
 
 def test_project_detail_lists_page_quizzes(client):
