@@ -30,3 +30,4 @@
 ## [2026-10-12] ticket | T10 — Quizzes REST API
 ## [2026-10-12] ticket | T11 — Quizzes MCP tools
 ## [2026-10-13] update | T9 — Quizzes core implemented (models, services, web take/score, badges)
+## [2026-10-13] update | T10 — quizzes REST API implemented (quiz CRUD, attempts, page reads)

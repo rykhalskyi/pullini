@@ -1,7 +1,7 @@
 ---
 created: 2026-10-12
 type: ticket
-status: proposed
+status: implemented
 summary: T10 — quizzes REST API: token-gated quiz CRUD, attempt scoring and the page-read endpoints an agent needs to generate quizzes.
 ---
 
@@ -65,4 +65,23 @@ source access a grounded quiz generator needs (D-42).
 
 ## Outcome
 
-Not yet implemented.
+Shipped.
+
+- `pullini/quizzes/api.py`: `quiz_collection` (GET list / POST upsert — `201` on
+  create, `200` on replace), `quiz_item` (GET / DELETE), `quiz_attempt` (POST
+  scoring), `page_collection` (GET, optional `?project=`) and `page_item` (GET).
+  All `@require_token` + `@api_endpoint`, owner-scoped, reusing the T9 validation
+  and mapping `QuizError` to `400 invalid_field`.
+- `pullini/api/urls.py`: mounted `quizzes/…` and `pages/…` under the `/api/`
+  aggregator.
+- Serializers: quiz list item (target, `stale`, `question_count`, `last_score`,
+  `best_score`, timestamps) and detail (adds questions with `options` /
+  `correct_index` / `explanation`); page summary and page detail (source
+  `content`). Page reads honour `visible_projects`, so disabled projects 404 for
+  non-staff (D-42).
+- Tests: `tests/test_quizzes_api.py` (19 tests: auth, create/replace, artifact
+  target, owner scoping, attempts scoring, validation, 405s, page list/filter,
+  page reads, hidden projects).
+
+Verification: `uv run pytest` → 289 passed, 3 skipped; `ruff check`/`format
+--check` clean; `manage.py check` and `makemigrations --check` clean.
