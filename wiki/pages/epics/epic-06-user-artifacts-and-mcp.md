@@ -71,7 +71,9 @@ per-user tag vocabulary created lazily · D-38 tag metadata editable from the we
 while content stays API-only · D-39 private per-user quizzes, one per (user,
 target) · D-40 agent-authored questions scored server-side · D-41 quiz stores the
 source content hash · D-42 connector page-read tools ground quizzes in page
-content. The deployment server stays WSGI as in D-09.
+content · D-43 private per-user Q&A sets, one per (user, target) · D-44 Q&A is a
+static agent-authored FAQ with Markdown answers · D-45 Q&A sets store the source
+content hash. The deployment server stays WSGI as in D-09.
 
 ## Tickets
 
@@ -86,6 +88,9 @@ content. The deployment server stays WSGI as in D-09.
 - [T9 — Quizzes (core)](../tickets/09-quizzes.md) — implemented
 - [T10 — Quizzes REST API](../tickets/10-quizzes-api.md) — implemented
 - [T11 — Quizzes MCP tools](../tickets/11-quizzes-mcp.md) — implemented
+- [T12 — Q&A (core)](../tickets/12-qanda-core.md) — proposed
+- [T13 — Q&A REST API](../tickets/13-qanda-api.md) — proposed
+- [T14 — Q&A MCP tools](../tickets/14-qanda-mcp.md) — proposed
 
 ## Outcome
 

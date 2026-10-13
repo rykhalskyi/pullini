@@ -37,19 +37,23 @@ the token's owner. Treat the raw secret like a password.
 
 ### MCP client config
 
-The client launches the server and passes the two variables. A copy-paste
-example lives in [`mcp.example.json`](mcp.example.json).
+The client launches the server and passes the two variables. The examples below
+are for [opencode](https://opencode.ai) (`opencode.jsonc`); adapt the shape to
+your own MCP client. The same example lives in
+[`mcp.example.json`](mcp.example.json).
 
 **From a local checkout** (before the package is published): point `--directory`
 at the `mcp/` folder of your clone.
 
 ```json
 {
-  "mcpServers": {
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
     "pullini": {
-      "command": "uv",
-      "args": ["run", "--directory", "/path/to/pullini/mcp", "pullini-mcp"],
-      "env": {
+      "type": "local",
+      "command": ["uv", "run", "--directory", "/path/to/pullini/mcp", "pullini-mcp"],
+      "enabled": true,
+      "environment": {
         "PULLINI_URL": "http://localhost:8000",
         "PULLINI_TOKEN": "pln_xxxxxxxx_yyyyyyyyyyyyyyyyyyyyyyyy"
       }
@@ -62,11 +66,13 @@ at the `mcp/` folder of your clone.
 
 ```json
 {
-  "mcpServers": {
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
     "pullini": {
-      "command": "uvx",
-      "args": ["pullini-mcp"],
-      "env": {
+      "type": "local",
+      "command": ["uvx", "pullini-mcp"],
+      "enabled": true,
+      "environment": {
         "PULLINI_URL": "https://pullini.example.com",
         "PULLINI_TOKEN": "pln_xxxxxxxx_yyyyyyyyyyyyyyyyyyyyyyyy"
       }
