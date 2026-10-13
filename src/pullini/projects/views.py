@@ -14,6 +14,7 @@ from django.views.decorators.http import require_POST
 from pullini.projects.access import visible_projects
 from pullini.projects.models import Project, ProjectSyncState, SyncStatus
 from pullini.projects.sync import sync_project
+from pullini.quizzes.services import quizzes_for_project
 
 
 def project_list(request: HttpRequest) -> HttpResponse:
@@ -34,6 +35,7 @@ def project_detail(request: HttpRequest, slug: str) -> HttpResponse:
             "project": project,
             "sync_state": sync_state,
             "page_count": project.pages.count(),
+            "quizzes": quizzes_for_project(request.user, project),
         },
     )
 

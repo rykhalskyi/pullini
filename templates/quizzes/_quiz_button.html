@@ -1,0 +1,22 @@
+{% if quiz %}
+<a
+  href="{% url 'quizzes:detail' quiz.pk %}"
+  class="inline-flex items-center gap-1.5 rounded-md border border-line bg-panel px-3 py-1.5 text-sm font-medium text-navy transition-colors hover:bg-soft"
+>
+  <span aria-hidden="true" class="text-brand">&#9998;</span> Quiz
+  {% if quiz.last_score is not None %}
+  <span
+    class="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand"
+    title="Your last score"
+    >{{ quiz.last_score }}/{{ quiz.question_count }}</span
+  >
+  {% endif %}
+</a>
+{% elif user.is_authenticated %}
+<span
+  class="inline-flex items-center gap-1.5 rounded-md border border-dashed border-line px-3 py-1.5 text-sm text-ink/40"
+  title="Ask your agent to generate a quiz for this page"
+>
+  No quiz yet
+</span>
+{% endif %}

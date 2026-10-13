@@ -1,7 +1,7 @@
 ---
 created: 2026-10-12
 type: ticket
-status: proposed
+status: implemented
 summary: T9 — quizzes core: Quiz/Question models, validation/scoring services and the read-only web surface (take, score, badges).
 ---
 
@@ -77,4 +77,26 @@ cascade + upsert · D-40 correctness server-side with last/best score on the qui
 
 ## Outcome
 
-Not yet implemented.
+Shipped.
+
+- New app `pullini/quizzes/`: `Quiz(user, page?, artifact?, target_type,
+  source_hash, last_score, best_score, created/updated)` with unique
+  `(user, page)`, unique `(user, artifact)` and a `quiz_exactly_one_target` check
+  constraint; `Question(quiz, position, text, options, correct_index,
+  explanation)` unique per `(quiz, position)`; migration `0001_initial`; admin
+  registration with a question inline.
+- `services.py`: `QuizError`, `validate_questions` (1–10 questions, 2–6 options,
+  in-range `correct_index`, length caps), `create_quiz` (upsert keyed on owner +
+  target, captures `content_hash`), `get_quiz`, `list_quizzes`,
+  `quizzes_for_project`, `delete_quiz`, `score_submission` (updates last/best).
+- Web: `quizzes:detail` (take) and `quizzes:submit` (score) — login-gated and
+  owner-scoped; `templates/quizzes/detail.html` and `_quiz_button.html` (score
+  badge, "No quiz yet" hint); the button is wired next to the favorite star on
+  `wiki/page.html` and at the top of `artifacts/detail.html`; a "Quizzes" section
+  lists the user's page quizzes on `project_detail.html`; `is_stale` flags a quiz
+  whose source changed.
+- Tests: `tests/test_quizzes.py` (27 tests: constraints, validation, replace,
+  scoping, cascade, staleness, scoring, web take/submit, badges, project list).
+
+Verification: `uv run pytest` → 270 passed, 3 skipped; `ruff check`/`format
+--check` clean; `manage.py check` and `makemigrations --check` clean.
