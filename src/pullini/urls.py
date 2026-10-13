@@ -22,5 +22,6 @@ urlpatterns = [
     path("settings/", include("pullini.accounts.urls")),
     path("api/", include("pullini.api.urls")),
     path("", include("pullini.artifacts.urls")),
+    path("", include("pullini.quizzes.urls")),
     path("admin/", admin.site.urls),
 ]

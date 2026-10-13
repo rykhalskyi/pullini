@@ -148,6 +148,80 @@ def share_artifact(slug: str, enable: bool = True) -> dict:
         client.close()
 
 
+@mcp.tool()
+def list_pages(project: str | None = None) -> list[dict]:
+    """List readable wiki pages, optionally for one project, to base a quiz on."""
+    client = _client()
+    try:
+        return client.list_pages(project)
+    finally:
+        client.close()
+
+
+@mcp.tool()
+def get_page(project: str, path: str) -> dict:
+    """Fetch one wiki page's source Markdown (use it to generate a grounded quiz)."""
+    client = _client()
+    try:
+        return client.get_page(project, path)
+    finally:
+        client.close()
+
+
+@mcp.tool()
+def create_quiz(
+    questions: list[dict],
+    page: dict | None = None,
+    artifact: str | None = None,
+) -> dict:
+    """Create or replace the quiz for one wiki page or artifact.
+
+    Args:
+        questions: Up to 10 questions, each an object with ``text``, ``options``
+            (2–6 strings), ``correct_index`` and an optional ``explanation``.
+        page: Target page as ``{"project": "<slug>", "path": "<path>"}``.
+        artifact: Target artifact slug. Provide exactly one of page/artifact.
+    """
+    if (page is None) == (artifact is None):
+        raise PulliniError('Provide exactly one of "page" or "artifact".')
+    client = _client()
+    try:
+        return client.create_quiz(questions=questions, page=page, artifact=artifact)
+    finally:
+        client.close()
+
+
+@mcp.tool()
+def get_quiz(quiz_id: int) -> dict:
+    """Fetch one quiz: its questions, target and your last/best score."""
+    client = _client()
+    try:
+        return client.get_quiz(quiz_id)
+    finally:
+        client.close()
+
+
+@mcp.tool()
+def list_quizzes() -> list[dict]:
+    """List the quizzes owned by the configured token."""
+    client = _client()
+    try:
+        return client.list_quizzes()
+    finally:
+        client.close()
+
+
+@mcp.tool()
+def delete_quiz(quiz_id: int) -> dict:
+    """Delete a quiz by id."""
+    client = _client()
+    try:
+        client.delete_quiz(quiz_id)
+        return {"id": quiz_id, "deleted": True}
+    finally:
+        client.close()
+
+
 @mcp.resource(
     "pullini://skill",
     name="pullini-skill",

@@ -16,6 +16,7 @@ from django.views.decorators.http import require_POST
 
 from pullini.artifacts import services
 from pullini.artifacts.models import Artifact, Tag, Visibility
+from pullini.quizzes.services import get_quiz
 
 
 def _all_tags(request: HttpRequest):
@@ -52,7 +53,12 @@ def artifact_detail(request: HttpRequest, slug: str) -> HttpResponse:
     return render(
         request,
         "artifacts/detail.html",
-        {"artifact": artifact, "share_url": share_url, "all_tags": _all_tags(request)},
+        {
+            "artifact": artifact,
+            "share_url": share_url,
+            "all_tags": _all_tags(request),
+            "quiz": get_quiz(request.user, artifact=artifact),
+        },
     )
 
 

@@ -26,6 +26,9 @@
 - [tickets/06-pullini-mcp](pages/tickets/06-pullini-mcp.md) — T6 — pullini-mcp: a local stdio FastMCP connector on PyPI that calls the artifact REST API with a PAT.
 - [tickets/07-agent-skill-api](pages/tickets/07-agent-skill-api.md) — T7 — an authenticated /api/skill/ endpoint serving a Markdown agent skill that documents the artifact create/edit/delete/share flow.
 - [tickets/08-artifact-tags](pages/tickets/08-artifact-tags.md) — T8 — artifact tags: a persistent per-user tag vocabulary, web editing, REST/MCP support and tag filtering.
+- [tickets/09-quizzes](pages/tickets/09-quizzes.md) — T9 — quizzes core: Quiz/Question models, validation/scoring services and the read-only web surface (take, score, badges).
+- [tickets/10-quizzes-api](pages/tickets/10-quizzes-api.md) — T10 — quizzes REST API: token-gated quiz CRUD, attempt scoring and the page-read endpoints an agent needs to generate quizzes.
+- [tickets/11-quizzes-mcp](pages/tickets/11-quizzes-mcp.md) — T11 — quizzes MCP tools: connector methods and tools for page reads and quiz create/get/list/delete, plus skill docs.
 
 ## Research
 - [research/design-guidelines](pages/research/design-guidelines.md) — UI/UX design guidelines — tone, color palette, typography, components, and Git visual language.
