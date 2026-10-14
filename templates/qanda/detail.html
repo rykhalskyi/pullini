@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Q&amp;A · {{ qanda.title }} · Pullini{% endblock %}
+{% block content %}
+<nav class="text-sm text-ink/70" aria-label="Breadcrumb">
+  <a href="{{ qanda.source_url }}" class="hover:text-brand">{{ qanda.title }}</a>
+  <span class="px-1">/</span>
+  <span class="text-navy">Q&amp;A</span>
+</nav>
+
+<article class="mt-6 max-w-3xl">
+  <h1 class="text-3xl font-bold tracking-tight text-navy">Q&amp;A</h1>
+  <p class="mt-2 text-sm text-ink/60">
+    About
+    <a href="{{ qanda.source_url }}" class="font-medium text-brand hover:underline">{{ qanda.title }}</a>
+    · {{ qanda.item_count }} question{{ qanda.item_count|pluralize }}
+  </p>
+
+  {% if qanda.is_stale %}
+  <div class="mt-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+    The source page changed since this Q&amp;A set was generated. Some answers may be out of date.
+  </div>
+  {% endif %}
+
+  <dl class="mt-8 space-y-6">
+    {% for item in qanda.items.all %}
+    <div class="rounded-xl border border-line bg-panel p-5">
+      <dt class="text-base font-semibold text-navy">{{ item.question }}</dt>
+      <dd class="wiki-content mt-3">{{ item.answer_html|safe }}</dd>
+    </div>
+    {% endfor %}
+  </dl>
+
+  <div class="mt-8">
+    <a
+      href="{{ qanda.source_url }}"
+      class="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90"
+      >Back to article</a
+    >
+  </div>
+</article>
+{% endblock %}
+
+{% block scripts %}
+{% if qanda.has_mermaid %}
+<script src="{% static 'js/vendor/mermaid.min.js' %}" defer></script>
+<script src="{% static 'js/mermaid-render.js' %}" defer></script>
+{% endif %}
+{% endblock %}

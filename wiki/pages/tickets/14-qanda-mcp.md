@@ -1,7 +1,7 @@
 ---
 created: 2026-10-13
 type: ticket
-status: proposed
+status: implemented
 summary: T14 — Q&A MCP tools: connector methods and tools for Q&A create/get/list/delete, plus skill and README docs.
 ---
 
@@ -61,4 +61,27 @@ reuses the T11 page-read tools for grounding (D-42).
 
 ## Outcome
 
-Not started — plan only.
+Shipped.
+
+- `mcp/src/pullini_mcp/client.py`: `create_qanda(entries, page=None,
+  artifact=None)`, `get_qanda(id)`, `list_qanda()`, `delete_qanda(id)` over the
+  T13 `/api/qanda/` endpoints.
+- `mcp/src/pullini_mcp/server.py`: the four tools registered; `create_qanda`
+  rejects anything but exactly one of `page`/`artifact` with a readable
+  `PulliniError`.
+- Skills: the connector's `skill.md` gains a "Q&A" flow; the API-served
+  `src/pullini/artifacts/skill.md` documents the `/api/qanda/` endpoints and
+  payload.
+- `mcp/README.md`: intro + tools table document the new Q&A tools.
+- Tests: Q&A cases added to `mcp/tests/test_client.py` (target/entries body,
+  artifact target, list unwrap, get/delete paths) and `mcp/tests/test_server.py`
+  (registry, delegation, target check).
+- Release: `mcp/pyproject.toml` and `mcp/src/pullini_mcp/__init__.py` bumped to
+  `0.9.0`; root `pyproject.toml` bumped to `0.9.0` (`uv.lock` re-synced).
+
+Verification: `mcp` `uv run pytest` → 49 passed; `mcp` ruff check/format clean;
+root `uv run pytest` → 333 passed, 3 skipped; root ruff clean.
+
+Remaining: the connector is prepared for release as `0.9.0` and tagged
+`mcp-v0.9.0`; pushing the tag publishes via
+[Trusted Publishing](06-pullini-mcp.md).

@@ -68,6 +68,26 @@
   {% endif %}
 </section>
 
+{% if qanda %}
+<section class="mt-10">
+  <h2 class="text-sm font-semibold uppercase tracking-wide text-ink/60">Q&amp;A</h2>
+  <ul class="mt-4 divide-y divide-line overflow-hidden rounded-xl border border-line bg-panel">
+    {% for set in qanda %}
+    <li class="flex items-center justify-between gap-4 px-5 py-3">
+      <div class="min-w-0">
+        <a href="{% url 'qanda:detail' set.pk %}" class="font-medium text-navy hover:text-brand"
+          >{{ set.title }}</a
+        >
+        <p class="mt-0.5 text-xs text-ink/60">
+          {{ set.item_count }} question{{ set.item_count|pluralize }}{% if set.is_stale %} · out of date{% endif %}
+        </p>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
 {% if quizzes %}
 <section class="mt-10">
   <h2 class="text-sm font-semibold uppercase tracking-wide text-ink/60">Quizzes</h2>

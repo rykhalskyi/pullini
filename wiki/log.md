@@ -35,3 +35,4 @@
 ## [2026-10-13] ticket | T12 — Q&A (core)
 ## [2026-10-13] ticket | T13 — Q&A REST API
 ## [2026-10-13] ticket | T14 — Q&A MCP tools
+## [2026-10-14] ticket | Q&A feature (T12 core, T13 REST API, T14 MCP tools)

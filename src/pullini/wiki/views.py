@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, render
 
 from pullini.favorites.services import is_favorite
 from pullini.projects.access import visible_projects
+from pullini.qanda.services import get_qanda
 from pullini.quizzes.services import get_quiz
 from pullini.wiki.generation import docs_path
 from pullini.wiki.models import Page
@@ -45,7 +46,7 @@ def wiki_recent(request: HttpRequest, slug: str) -> HttpResponse:
 def wiki_page(request: HttpRequest, slug: str, page_path: str) -> HttpResponse:
     project = _get_project(request, slug)
     page = get_object_or_404(Page, project=project, url_path=page_path)
-    quiz = get_quiz(request.user, page=page) if request.user.is_authenticated else None
+    authenticated = request.user.is_authenticated
     return render(
         request,
         "wiki/page.html",
@@ -54,7 +55,8 @@ def wiki_page(request: HttpRequest, slug: str, page_path: str) -> HttpResponse:
             "page": page,
             "breadcrumbs": _breadcrumbs(page),
             "is_favorite": is_favorite(request.user, page),
-            "quiz": quiz,
+            "quiz": get_quiz(request.user, page=page) if authenticated else None,
+            "qanda": get_qanda(request.user, page=page) if authenticated else None,
         },
     )
 

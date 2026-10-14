@@ -1,7 +1,7 @@
 ---
 created: 2026-10-13
 type: ticket
-status: proposed
+status: implemented
 summary: T13 — Q&A REST API: token-gated Q&A set CRUD over the T12 domain, mirroring the quizzes endpoints.
 ---
 
@@ -61,4 +61,19 @@ Reuses T12 validation and D-32 bearer auth; mirrors the T10 quizzes endpoints
 
 ## Outcome
 
-Not started — plan only.
+Shipped.
+
+- `pullini/qanda/api.py`: `qanda_collection` (GET list / POST upsert — `201` on
+  create, `200` on replace) and `qanda_item` (GET / DELETE); both `@require_token`
+  + `@api_endpoint`, owner-scoped, reusing the T12 `validate_entries` and mapping
+  `QandAError` to `400 invalid_field`.
+- `pullini/api/urls.py`: mounted `qanda/` and `qanda/<int:pk>/` under the `/api/`
+  aggregator.
+- Serializers: list item (`id`, `target_type`, `target`, `item_count`, `stale`,
+  timestamps) and detail (adds `position`, `question`, `answer`, `answer_html`);
+  `_resolve_target` reuses the quiz API shape and honours `visible_projects`.
+- Tests: `tests/test_qanda_api.py` (12 tests: auth, create/replace, artifact
+  target, owner scoping, read/delete, malformed bodies, target resolution, 405s).
+
+Verification: `uv run pytest` → 333 passed, 3 skipped; `ruff check`/`format
+--check` clean; `manage.py check` and `makemigrations --check` clean.

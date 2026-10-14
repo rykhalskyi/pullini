@@ -81,6 +81,21 @@ class FakeClient:
     def delete_quiz(self, quiz_id):
         self.calls.append(("delete_quiz", quiz_id))
 
+    def create_qanda(self, *, entries, page=None, artifact=None):
+        self.calls.append(("create_qanda", entries, page, artifact))
+        return {"id": 1, "items": entries}
+
+    def get_qanda(self, qanda_id):
+        self.calls.append(("get_qanda", qanda_id))
+        return {"id": qanda_id, "items": []}
+
+    def list_qanda(self):
+        self.calls.append(("list_qanda",))
+        return [{"id": 1}]
+
+    def delete_qanda(self, qanda_id):
+        self.calls.append(("delete_qanda", qanda_id))
+
     def close(self):
         self.calls.append(("close",))
 
@@ -110,6 +125,10 @@ def test_tool_names_are_registered():
         "get_quiz",
         "list_quizzes",
         "delete_quiz",
+        "create_qanda",
+        "get_qanda",
+        "list_qanda",
+        "delete_qanda",
     }
 
 
@@ -233,6 +252,38 @@ def test_quiz_read_and_delete_delegate(fake):
     assert ("get_quiz", 1) in fake.calls
     assert ("list_quizzes",) in fake.calls
     assert ("delete_quiz", 1) in fake.calls
+
+
+def test_create_qanda_delegates(fake):
+    entries = [{"question": "Q", "answer": "A"}]
+
+    server.create_qanda(entries, page={"project": "payments", "path": "index.md"})
+
+    assert (
+        "create_qanda",
+        entries,
+        {"project": "payments", "path": "index.md"},
+        None,
+    ) in fake.calls
+
+
+def test_create_qanda_requires_exactly_one_target(fake):
+    with pytest.raises(PulliniError, match="exactly one"):
+        server.create_qanda([], page={"project": "p", "path": "x.md"}, artifact="a")
+    with pytest.raises(PulliniError, match="exactly one"):
+        server.create_qanda([])
+
+    assert fake.calls == []
+
+
+def test_qanda_read_and_delete_delegate(fake):
+    server.get_qanda(1)
+    assert server.list_qanda() == [{"id": 1}]
+    assert server.delete_qanda(1) == {"id": 1, "deleted": True}
+
+    assert ("get_qanda", 1) in fake.calls
+    assert ("list_qanda",) in fake.calls
+    assert ("delete_qanda", 1) in fake.calls
 
 
 def test_skill_resource_is_registered():
