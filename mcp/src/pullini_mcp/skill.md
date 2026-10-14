@@ -27,6 +27,10 @@ handles the host URL and token for you — never ask the user for either.
   for one page or artifact.
 - `get_quiz(quiz_id)` / `list_quizzes()` — read quizzes and your scores.
 - `delete_quiz(quiz_id)` — delete a quiz.
+- `create_qanda(entries, page=None, artifact=None)` — create or replace a static
+  Q&A set for one page or artifact.
+- `get_qanda(qanda_id)` / `list_qanda()` — read Q&A sets.
+- `delete_qanda(qanda_id)` — delete a Q&A set.
 
 ## Workflow
 
@@ -48,6 +52,21 @@ Generate a self-study quiz about a wiki page or an artifact:
    2–6 options and one in-range `correct_index`.
 3. Creating again for the same target **replaces** it (one quiz per user per
    target). `get_quiz`/`list_quizzes` return the owner's `last_score`/`best_score`.
+
+## Q&A
+
+Generate a static reference Q&A set (FAQ) about a wiki page or an artifact. Every
+answer is shown; nothing is scored and there is no runtime model.
+
+1. Fetch the source: `get_page("<project>", "<path>")` (or `get_artifact(slug)`).
+2. Write up to **50** question/answer pairs and call
+   `create_qanda(entries, page={"project": "<slug>", "path": "<path>"})` — or
+   `create_qanda(entries, artifact="<slug>")`. Provide **exactly one** target.
+   Each entry is `{"question": "...", "answer": "..."}`; the `answer` is Markdown
+   (rendered and sanitized), the `question` is plain text (≤500 characters) and
+   the `answer` is at most 5000 characters.
+3. Creating again for the same target **replaces** it (one set per user per
+   target). `get_qanda`/`list_qanda` return the stored items.
 
 ## Authoring
 

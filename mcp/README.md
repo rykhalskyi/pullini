@@ -2,8 +2,8 @@
 
 A local **stdio** [MCP](https://modelcontextprotocol.io) connector that lets an
 agent create, read, update, delete and share [Pullini](https://github.com/rykhalskyi/pullini)
-artifacts, and generate self-study quizzes about wiki pages or artifacts, over the
-authenticated artifact REST API.
+artifacts, and generate self-study quizzes and static Q&A sets about wiki pages or
+artifacts, over the authenticated artifact REST API.
 
 The connector runs on the agent's machine. It reads its configuration from the
 environment and needs no ASGI or OAuth infrastructure on the Pullini host
@@ -97,6 +97,10 @@ at the `mcp/` folder of your clone.
 | `get_quiz`        | Fetch one quiz (questions and your scores).                    |
 | `list_quizzes`    | List the token owner's quizzes.                                |
 | `delete_quiz`     | Delete a quiz.                                                 |
+| `create_qanda`    | Create or replace a static Q&A set for one page or artifact.   |
+| `get_qanda`       | Fetch one Q&A set (questions and answers).                     |
+| `list_qanda`      | List the token owner's Q&A sets.                               |
+| `delete_qanda`    | Delete a Q&A set.                                              |
 
 `content` is Markdown; fenced ` ```mermaid ` blocks render as diagrams. Artifacts
 are **private by default**: `share_artifact` returns a read-only `share_url`
@@ -106,6 +110,11 @@ Quizzes are private and self-study: fetch a page with `get_page`, write up to 10
 multiple-choice questions and pass them to `create_quiz` with either a
 `page={"project", "path"}` or an `artifact` slug target. Creating again for the
 same target replaces it; read scores back from `get_quiz`/`list_quizzes`.
+
+Q&A sets are private, static FAQs: write up to 50 `{question, answer}` entries and
+pass them to `create_qanda` with a `page` or `artifact` target. Answers are
+Markdown, rendered read-only; nothing is scored. Creating again for the same target
+replaces it; read sets back from `get_qanda`/`list_qanda`.
 
 ## Development
 

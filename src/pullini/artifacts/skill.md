@@ -41,6 +41,10 @@ POST   /api/quizzes/                 create or replace a quiz
 GET    /api/quizzes/<id>/            fetch one quiz (questions + your scores)
 DELETE /api/quizzes/<id>/            delete a quiz
 POST   /api/quizzes/<id>/attempts/   submit answers, get the score
+GET    /api/qanda/                   list your Q&A sets
+POST   /api/qanda/                   create or replace a Q&A set
+GET    /api/qanda/<id>/              fetch one Q&A set (questions + answers)
+DELETE /api/qanda/<id>/              delete a Q&A set
 ```
 
 ## Create
@@ -157,6 +161,30 @@ or one artifact. Read the source first, then create the quiz.
 - `POST /api/quizzes/<id>/attempts/` with `{"answers": [1, 0, ...]}` scores your
   answers and returns `score`, `total`, `last_score`, `best_score` and per-question
   correctness.
+
+## Q&A
+
+A Q&A set is a private, static FAQ (reference sheet) about exactly one wiki page or
+one artifact. Every answer is visible; there is no scoring and no runtime model.
+Read the source first, then create the set.
+
+- `POST /api/qanda/` targets exactly one source and takes an `entries` list:
+
+  ```json
+  {
+    "page": {"project": "payments", "path": "guide/setup.md"},
+    "entries": [
+      {"question": "What port?", "answer": "TLS listens on **443**."}
+    ]
+  }
+  ```
+
+  Or target an artifact with `{"artifact": "<slug>", "entries": [...]}`. Up to 50
+  entries; each has a non-empty `question` (≤500 chars) and a Markdown `answer`
+  (≤5000 chars) rendered and sanitized at write time. Creating again for the same
+  target **replaces** it (`200`), a first create returns `201`.
+- `GET /api/qanda/<id>/` returns `target`, `item_count`, `stale` and the `items`
+  (each with `position`, `question`, `answer` and rendered `answer_html`).
 
 ## Errors
 

@@ -6,6 +6,7 @@ from django.urls import path
 
 from pullini.accounts import api as accounts_api
 from pullini.artifacts import api as artifacts_api
+from pullini.qanda import api as qanda_api
 from pullini.quizzes import api as quizzes_api
 
 app_name = "api"
@@ -23,4 +24,6 @@ urlpatterns = [
     path("quizzes/<int:pk>/", quizzes_api.quiz_item, name="quiz_item"),
     path("pages/", quizzes_api.page_collection, name="page_collection"),
     path("pages/<slug:project>/<path:page_path>/", quizzes_api.page_item, name="page_item"),
+    path("qanda/", qanda_api.qanda_collection, name="qanda_collection"),
+    path("qanda/<int:pk>/", qanda_api.qanda_item, name="qanda_item"),
 ]

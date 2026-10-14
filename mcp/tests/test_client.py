@@ -280,6 +280,65 @@ def test_get_and_delete_quiz_paths():
     assert seen == [("GET", "/api/quizzes/7/"), ("DELETE", "/api/quizzes/7/")]
 
 
+# --- Q&A ----------------------------------------------------------------------
+
+
+def test_create_qanda_sends_target_and_entries():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["method"] = request.method
+        captured["body"] = request.read().decode()
+        return json_response(201, {"id": 1})
+
+    client = make_client(handler)
+    client.create_qanda(
+        entries=[{"question": "Q", "answer": "A"}],
+        page={"project": "payments", "path": "guide/setup.md"},
+    )
+
+    assert captured["method"] == "POST"
+    body = captured["body"].replace(" ", "")
+    assert '"page":{"project":"payments","path":"guide/setup.md"}' in body
+    assert '"entries":[{"question":"Q","answer":"A"}]' in body
+    assert "artifact" not in body
+
+
+def test_create_qanda_for_an_artifact():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = request.read().decode()
+        return json_response(201, {"id": 2})
+
+    make_client(handler).create_qanda(entries=[], artifact="report")
+
+    assert '"artifact":"report"' in captured["body"].replace(" ", "")
+
+
+def test_list_qanda_unwraps_mapping():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return json_response(200, {"qanda": [{"id": 1}, {"id": 2}]})
+
+    assert [set_["id"] for set_ in make_client(handler).list_qanda()] == [1, 2]
+
+
+def test_get_and_delete_qanda_paths():
+    seen = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append((request.method, request.url.path))
+        if request.method == "DELETE":
+            return httpx.Response(204)
+        return json_response(200, {"id": 7})
+
+    client = make_client(handler)
+    assert client.get_qanda(7)["id"] == 7
+    assert client.delete_qanda(7) is None
+
+    assert seen == [("GET", "/api/qanda/7/"), ("DELETE", "/api/qanda/7/")]
+
+
 # --- errors -------------------------------------------------------------------
 
 

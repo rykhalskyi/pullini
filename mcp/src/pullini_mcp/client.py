@@ -236,3 +236,33 @@ class PulliniClient:
     def delete_quiz(self, quiz_id: int) -> None:
         """Delete a quiz (``DELETE /api/quizzes/<id>/``)."""
         self._request("DELETE", f"/api/quizzes/{quiz_id}/")
+
+    # --- Q&A -----------------------------------------------------------------
+
+    def list_qanda(self) -> list[dict]:
+        """Return the token owner's Q&A sets (``GET /api/qanda/``)."""
+        payload = self._request("GET", "/api/qanda/")
+        return payload.get("qanda", [])
+
+    def get_qanda(self, qanda_id: int) -> dict:
+        """Return one Q&A set with its items (``GET /api/qanda/<id>/``)."""
+        return self._request("GET", f"/api/qanda/{qanda_id}/")
+
+    def create_qanda(
+        self,
+        *,
+        entries: list[dict],
+        page: dict | None = None,
+        artifact: str | None = None,
+    ) -> dict:
+        """Create or replace the Q&A set for one page or artifact (``POST /api/qanda/``)."""
+        body: dict[str, Any] = {"entries": entries}
+        if page is not None:
+            body["page"] = page
+        if artifact is not None:
+            body["artifact"] = artifact
+        return self._request("POST", "/api/qanda/", json=body)
+
+    def delete_qanda(self, qanda_id: int) -> None:
+        """Delete a Q&A set (``DELETE /api/qanda/<id>/``)."""
+        self._request("DELETE", f"/api/qanda/{qanda_id}/")

@@ -84,6 +84,7 @@ INSTALLED_APPS = [
     "pullini.accounts",
     "pullini.artifacts",
     "pullini.quizzes",
+    "pullini.qanda",
 ]
 
 MIDDLEWARE = [

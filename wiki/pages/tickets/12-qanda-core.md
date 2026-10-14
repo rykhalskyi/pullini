@@ -1,7 +1,7 @@
 ---
 created: 2026-10-13
 type: ticket
-status: proposed
+status: implemented
 summary: T12 — Q&A core: QandA/QandAItem models, validation/upsert services and the read-only static FAQ web surface for a wiki page or artifact.
 ---
 
@@ -82,4 +82,27 @@ staleness (mirrors D-41).
 
 ## Outcome
 
-Not started — plan only.
+Shipped.
+
+- New app `pullini/qanda/`: `QandA(user, page?, artifact?, target_type,
+  source_hash, created/updated)` with unique `(user, page)`, unique
+  `(user, artifact)` and a `qanda_exactly_one_target` check constraint;
+  `QandAItem(qanda, position, question, answer, answer_html)` unique per
+  `(qanda, position)`; migration `0001_initial`; admin registration with an item
+  inline.
+- `services.py`: `QandAError`, `validate_entries` (1–50 entries, non-empty
+  question ≤500 chars, non-empty Markdown answer ≤5000 chars, `answer_html`
+  rendered/sanitized through `pullini.wiki.markup`), `create_qanda` (upsert keyed
+  on owner + target, captures `content_hash`), `get_qanda`, `list_qanda`,
+  `qanda_for_project`, `delete_qanda`.
+- Web: `qanda:detail` (login-gated, owner-scoped); `templates/qanda/detail.html`
+  and `_qanda_button.html` (pair count, "No Q&A yet" hint); the button is wired
+  next to the quiz button on `wiki/page.html` and at the top of
+  `artifacts/detail.html`; a "Q&A" section lists the user's page sets on
+  `project_detail.html`; `is_stale` flags a set whose source changed; Mermaid
+  answers load the diagram scripts.
+- Tests: `tests/test_qanda.py` (30 tests: constraints, validation, replace,
+  scoping, cascade, staleness, Markdown rendering/sanitization, Mermaid, web).
+
+Verification: `uv run pytest` → 333 passed, 3 skipped; `ruff check`/`format
+--check` clean; `manage.py check` and `makemigrations --check` clean.

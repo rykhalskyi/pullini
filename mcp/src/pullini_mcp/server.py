@@ -222,6 +222,60 @@ def delete_quiz(quiz_id: int) -> dict:
         client.close()
 
 
+@mcp.tool()
+def list_qanda() -> list[dict]:
+    """List the Q&A sets owned by the configured token."""
+    client = _client()
+    try:
+        return client.list_qanda()
+    finally:
+        client.close()
+
+
+@mcp.tool()
+def get_qanda(qanda_id: int) -> dict:
+    """Fetch one Q&A set: its question/answer items and target."""
+    client = _client()
+    try:
+        return client.get_qanda(qanda_id)
+    finally:
+        client.close()
+
+
+@mcp.tool()
+def create_qanda(
+    entries: list[dict],
+    page: dict | None = None,
+    artifact: str | None = None,
+) -> dict:
+    """Create or replace the Q&A set for one wiki page or artifact.
+
+    Args:
+        entries: Up to 50 items, each an object with ``question`` (≤500 chars)
+            and ``answer`` (Markdown, ≤5000 chars).
+        page: Target page as ``{"project": "<slug>", "path": "<path>"}``.
+        artifact: Target artifact slug. Provide exactly one of page/artifact.
+    """
+    if (page is None) == (artifact is None):
+        raise PulliniError('Provide exactly one of "page" or "artifact".')
+    client = _client()
+    try:
+        return client.create_qanda(entries=entries, page=page, artifact=artifact)
+    finally:
+        client.close()
+
+
+@mcp.tool()
+def delete_qanda(qanda_id: int) -> dict:
+    """Delete a Q&A set by id."""
+    client = _client()
+    try:
+        client.delete_qanda(qanda_id)
+        return {"id": qanda_id, "deleted": True}
+    finally:
+        client.close()
+
+
 @mcp.resource(
     "pullini://skill",
     name="pullini-skill",
