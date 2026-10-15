@@ -47,3 +47,7 @@ Append-only decision record. The "why" lives here; the full change history lives
 - [2026-10-13] D-43 — Q&A sets are private per user, target exactly one Page or Artifact via two nullable FKs plus a discriminator, are unique per (user, target), replace via upsert and cascade on source deletion — because a Q&A set belongs to one owner and one source page (mirrors D-39)
 - [2026-10-13] D-44 — A Q&A set is a static, agent-authored FAQ: every answer is visible, there is no scoring or attempts and no runtime model, and answers are Markdown rendered and sanitized at write time — because self-study reference material needs readable Markdown without a live agent
 - [2026-10-13] D-45 — Each Q&A set stores its source page's content_hash — because Git pages are regenerated on sync and the UI should flag Q&A sets that are stale (mirrors D-41)
+- [2026-10-15] D-46 — Projects are user-owned and owner-private (owner + superusers only); anonymous and other users get 404 — because users need private documentation workspaces (extends the artifact model to projects)
+- [2026-10-15] D-47 — The superuser flag, not is_staff, grants cross-user project visibility and deletion — because admin is the single superuser (D-35)
+- [2026-10-15] D-48 — Project slug and name are unique per owner and clone/lock paths are namespaced by owner — because two users may pick the same project name
+- [2026-10-15] D-49 — Project management moves from the Django admin to an in-app page (supersedes D-12) — because non-admin owners must manage their own projects without admin access

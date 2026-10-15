@@ -32,6 +32,7 @@
 - [tickets/12-qanda-core](pages/tickets/12-qanda-core.md) — T12 — Q&A core: QandA/QandAItem models, validation/upsert services and the read-only static FAQ web surface for a wiki page or artifact.
 - [tickets/13-qanda-api](pages/tickets/13-qanda-api.md) — T13 — Q&A REST API: token-gated Q&A set CRUD over the T12 domain, mirroring the quizzes endpoints.
 - [tickets/14-qanda-mcp](pages/tickets/14-qanda-mcp.md) — T14 — Q&A MCP tools: connector methods and tools for Q&A create/get/list/delete, plus skill and README docs.
+- [tickets/15-user-private-projects](pages/tickets/15-user-private-projects.md) — T15 — user-owned private projects: owner-scoped visibility, an in-app management page, per-user slugs + namespaced clones, superuser oversight and cascade cleanup.
 
 ## Research
 - [research/design-guidelines](pages/research/design-guidelines.md) — UI/UX design guidelines — tone, color palette, typography, components, and Git visual language.
