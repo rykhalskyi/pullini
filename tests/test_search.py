@@ -69,6 +69,17 @@ def test_search_excludes_other_users_projects(client, project):
     assert b"No results matched" in response.content
 
 
+def test_search_includes_owner_disabled_project(owner_client, project):
+    # A disabled project is still the owner's to read and search.
+    project.enabled = False
+    project.save(update_fields=["enabled"])
+    sync_project(project, force=True)
+
+    response = owner_client.get(reverse("search:global"), {"q": "Home"})
+
+    assert b"No results matched" not in response.content
+
+
 def test_scoped_search_returns_results(owner_client, project):
     sync_project(project, force=True)
 

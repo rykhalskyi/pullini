@@ -31,10 +31,3 @@ def is_owner(user, project: Project) -> bool:
     if user is None or not user.is_authenticated:
         return False
     return project.user_id == user.id
-
-
-def can_manage(user, project: Project) -> bool:
-    """Whether ``user`` may manage ``project`` (owner or superuser)."""
-    if user is None or not user.is_authenticated:
-        return False
-    return user.is_superuser or project.user_id == user.id

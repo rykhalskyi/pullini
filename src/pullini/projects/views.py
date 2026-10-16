@@ -125,8 +125,8 @@ def project_delete(request: HttpRequest, slug: str) -> HttpResponse:
     return redirect("projects:manage")
 
 
-@require_POST
 @login_required
+@require_POST
 def project_refresh(request: HttpRequest, slug: str) -> HttpResponse:
     """Trigger an immediate synchronization (owner only, HLD §4)."""
     if request.user.is_superuser:

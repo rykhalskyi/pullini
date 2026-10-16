@@ -114,7 +114,7 @@ Implemented. `Project.user` FK (nullable, cascade) with per-owner unique
 `(user, slug)` / `(user, name)` and an owner-scoped `_unique_slug`; migrations
 `0003_project_owner` + `0004_assign_ownerless_projects` assign existing projects
 to the earliest superuser. `visible_projects(user)` is owner-private (superuser
-sees all, anonymous none) and `can_manage` gates refresh/delete. Clones and locks
+sees all, anonymous none); the owner gate (`is_owner`) guards refresh/delete. Clones and locks
 move to `REPOSITORIES_DIR/<user_id>/<slug>`; a `post_delete` signal removes the
 clone and lock on commit, and deleting the owner cascades through projects,
 pages, quizzes, Q&A and favorites. New `ProjectForm`, `project_manage` /
@@ -134,3 +134,9 @@ de-dupes existing collisions, `0008` restores the unique index); only `name` and
 delete/refresh surface is **owner-only** — superusers are redirected to the
 Django admin, which remains their management surface. `is_owner` replaces
 `can_manage` for in-app actions.
+
+Semantics clarified: `enabled` now gates **scheduled sync only** (`sync.py`),
+not visibility — an owner still lists, browses and searches their own disabled
+projects (previously `enabled` hid projects from the public list/search). The
+admin no longer prepopulates `slug` from `name`, since global slug uniqueness
+(D-51) plus cross-owner same-name projects (D-52) made that collide on save.

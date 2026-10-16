@@ -169,6 +169,17 @@ def test_anonymous_sees_no_projects(client):
     assert b"Mine" not in response.content
 
 
+def test_owner_sees_disabled_project_in_list(client):
+    # `enabled` gates scheduled sync only; owners still browse disabled projects.
+    owner = make_user("owner")
+    make_project(user=owner, name="Paused", enabled=False)
+    client.force_login(owner)
+
+    content = client.get(reverse("projects:list")).content
+
+    assert b"Paused" in content
+
+
 def test_owner_sees_project_detail(client):
     owner = make_user("owner")
     project = make_project(user=owner, name="Visible")
