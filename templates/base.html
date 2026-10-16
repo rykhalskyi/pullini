@@ -48,13 +48,6 @@
           class="text-sm text-navy/80 transition-colors hover:text-brand"
           >Browse projects</a
         >
-        {% if user.is_authenticated %}
-        <a
-          href="{% url 'projects:manage' %}"
-          class="text-sm text-navy/80 transition-colors hover:text-brand"
-          >Manage projects</a
-        >
-        {% endif %}
         <a
           href="{% url 'favorites:list' %}"
           class="text-sm text-navy/80 transition-colors hover:text-brand"
@@ -166,6 +159,11 @@
                 >Settings</a
               >
               {% endif %}
+              <a
+                href="{% url 'projects:manage' %}"
+                class="block px-4 py-2 text-sm text-navy/80 transition-colors hover:bg-soft"
+                >Manage projects</a
+              >
               <a
                 href="{% url 'accounts:tokens' %}"
                 class="block px-4 py-2 text-sm text-navy/80 transition-colors hover:bg-soft"
