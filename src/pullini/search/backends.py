@@ -19,6 +19,7 @@ from django.db import connection
 from django.db.models import Q
 
 from pullini.artifacts.models import Artifact
+from pullini.projects.access import visible_projects
 from pullini.wiki.models import Page
 
 SNIPPET_WIDTH = 200
@@ -104,12 +105,14 @@ class SimpleSearchBackend:
 
     name = "simple"
 
-    def search_pages(self, query: str, *, project=None, limit: int = 20) -> list[SearchResult]:
+    def search_pages(
+        self, query: str, *, user, project=None, limit: int = 20
+    ) -> list[SearchResult]:
         terms = _terms(query)
         if not terms:
             return []
 
-        pages = Page.objects.select_related("project").filter(project__enabled=True)
+        pages = Page.objects.select_related("project").filter(project__in=visible_projects(user))
         if project is not None:
             pages = pages.filter(project=project)
 
@@ -184,14 +187,16 @@ class PostgresSearchBackend(SimpleSearchBackend):
 
     name = "postgres"
 
-    def search_pages(self, query: str, *, project=None, limit: int = 20) -> list[SearchResult]:
+    def search_pages(
+        self, query: str, *, user, project=None, limit: int = 20
+    ) -> list[SearchResult]:
         from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 
         terms = _terms(query)
         if not terms:
             return []
 
-        pages = Page.objects.select_related("project").filter(project__enabled=True)
+        pages = Page.objects.select_related("project").filter(project__in=visible_projects(user))
         if project is not None:
             pages = pages.filter(project=project)
 

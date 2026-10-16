@@ -19,12 +19,12 @@ def search(query: str, *, user, project=None, limit: int = 20) -> list[SearchRes
 
     backend = get_backend()
     artifacts = backend.search_artifacts(query, user=user, limit=limit) if project is None else []
-    pages = backend.search_pages(query, project=project, limit=limit)
+    pages = backend.search_pages(query, user=user, project=project, limit=limit)
     return [*artifacts, *pages]
 
 
-def search_pages(query: str, *, project=None, limit: int = 20) -> list[SearchResult]:
+def search_pages(query: str, *, user, project=None, limit: int = 20) -> list[SearchResult]:
     query = (query or "").strip()
     if not query:
         return []
-    return get_backend().search_pages(query, project=project, limit=limit)
+    return get_backend().search_pages(query, user=user, project=project, limit=limit)

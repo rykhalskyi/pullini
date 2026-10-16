@@ -21,11 +21,12 @@ def make_user(username: str = "reader"):
     return get_user_model().objects.create_user(username=username, password="s3cret-pass")
 
 
-def make_project(name: str = "Payments", *, enabled: bool = True) -> Project:
+def make_project(name: str = "Payments", *, enabled: bool = True, user=None) -> Project:
     return Project.objects.create(
         name=name,
         repo_url="https://git.example.com/payments.git",
         enabled=enabled,
+        user=user,
     )
 
 
@@ -69,7 +70,7 @@ def test_toggle_rejects_get(client):
 
 def test_toggle_adds_and_removes(client):
     user = make_user()
-    page = make_page(make_project())
+    page = make_page(make_project(user=user))
     client.force_login(user)
 
     first = client.post(reverse("favorites:toggle", args=[page.pk]))
@@ -83,7 +84,7 @@ def test_toggle_adds_and_removes(client):
 
 def test_htmx_toggle_returns_partial(client):
     user = make_user()
-    page = make_page(make_project())
+    page = make_page(make_project(user=user))
     client.force_login(user)
 
     response = client.post(
@@ -106,7 +107,7 @@ def test_favorites_list_requires_login(client):
 def test_favorites_list_shows_only_own_favorites(client):
     user = make_user()
     other = make_user("other")
-    project = make_project()
+    project = make_project(user=user)
     mine = make_page(project, path="mine.md", title="Mine")
     theirs = make_page(project, path="theirs.md", title="Theirs")
     Favorite.objects.create(user=user, page=mine)
@@ -121,7 +122,7 @@ def test_favorites_list_shows_only_own_favorites(client):
 
 def test_home_shows_only_six_most_recent_favorites(client):
     user = make_user()
-    project = make_project()
+    project = make_project(user=user)
     client.force_login(user)
     pages = [make_page(project, path=f"p{i}.md", title=f"Page {i}") for i in range(7)]
     now = timezone.now()
@@ -138,7 +139,7 @@ def test_home_shows_only_six_most_recent_favorites(client):
 
 def test_wiki_page_reflects_favorite_state(client):
     user = make_user()
-    project = make_project()
+    project = make_project(user=user)
     page = make_page(project, path="index.md", title="Home")
     Favorite.objects.create(user=user, page=page)
     client.force_login(user)
@@ -150,7 +151,7 @@ def test_wiki_page_reflects_favorite_state(client):
 
 def test_wiki_page_shows_unfavorited_star(client):
     user = make_user()
-    project = make_project()
+    project = make_project(user=user)
     page = make_page(project, path="index.md", title="Home")
     client.force_login(user)
 
@@ -160,10 +161,10 @@ def test_wiki_page_shows_unfavorited_star(client):
     assert b"Favorite" in content
 
 
-def test_toggle_rejects_page_in_hidden_project(client):
+def test_toggle_rejects_page_in_another_users_project(client):
     user = make_user()
-    project = make_project(enabled=False)
-    page = make_page(project, path="secret.md", title="Secret")
+    other = make_user("other")
+    page = make_page(make_project(user=other), path="secret.md", title="Secret")
     client.force_login(user)
 
     response = client.post(reverse("favorites:toggle", args=[page.pk]))
@@ -172,13 +173,11 @@ def test_toggle_rejects_page_in_hidden_project(client):
     assert not Favorite.objects.filter(user=user, page=page).exists()
 
 
-def test_favorites_list_hides_pages_from_disabled_projects(client):
+def test_favorites_list_hides_pages_from_other_users_projects(client):
     user = make_user()
-    project = make_project()
-    page = make_page(project, path="index.md", title="Hidden Later")
+    other = make_user("other")
+    page = make_page(make_project(user=other), path="index.md", title="Hidden Later")
     Favorite.objects.create(user=user, page=page)
-    project.enabled = False
-    project.save(update_fields=["enabled"])
     client.force_login(user)
 
     content = client.get(reverse("favorites:list")).content
@@ -186,13 +185,11 @@ def test_favorites_list_hides_pages_from_disabled_projects(client):
     assert b"Hidden Later" not in content
 
 
-def test_home_hides_favorites_from_disabled_projects(client):
+def test_home_hides_favorites_from_other_users_projects(client):
     user = make_user()
-    project = make_project()
-    page = make_page(project, path="index.md", title="Hidden Later")
+    other = make_user("other")
+    page = make_page(make_project(user=other), path="index.md", title="Hidden Later")
     Favorite.objects.create(user=user, page=page)
-    project.enabled = False
-    project.save(update_fields=["enabled"])
     client.force_login(user)
 
     content = client.get(reverse("home")).content
@@ -200,11 +197,9 @@ def test_home_hides_favorites_from_disabled_projects(client):
     assert b"Hidden Later" not in content
 
 
-def test_staff_can_favorite_page_in_disabled_project(client):
-    user = get_user_model().objects.create_user(
-        username="admin", password="s3cret-pass", is_staff=True
-    )
-    project = make_project(enabled=False)
+def test_owner_can_favorite_page_in_disabled_project(client):
+    user = make_user()
+    project = make_project(enabled=False, user=user)
     page = make_page(project, path="secret.md", title="Secret")
     client.force_login(user)
 

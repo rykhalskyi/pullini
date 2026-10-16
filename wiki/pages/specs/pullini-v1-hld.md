@@ -85,15 +85,15 @@ The application should not depend on the installation type.
 
 ## 4. Authentication / users
 
-V1 has two roles: **Admin** (staff) and a non-staff **reader** (D-27).
+V1 has two roles: **Admin** (superuser) and a non-staff **user** (D-27, T15).
 
 Admin can:
 
 * Log in
-* View all projects
+* View every project (cross-user oversight)
 * Add projects
 * Configure projects
-* Delete projects
+* Delete any project
 * Trigger project refresh
 * Browse/search all documentation
 
@@ -104,19 +104,25 @@ Admin cannot:
 * Delete wiki pages
 * Modify Git content through Pullini
 
-A **reader** can log in, browse and search all public documentation, and keep
-per-user state such as favorites. A reader cannot manage projects.
+A **user** can log in, add and manage **their own** projects, and browse and
+search those projects and their pages, and keep per-user state such as
+favorites. A user owns private documentation workspaces: their projects are
+visible only to them and to admin. Anonymous visitors and other users get a 404.
 
-All wiki pages are **public/read-only**.
+Wiki pages are **owner-private and read-only** (T15).
 
 ## 5. Projects
 
-A Pullini project represents a Git repository and its documentation.
+A Pullini project represents a Git repository and its documentation. A project
+is **owned by one user** and private to that owner (T15); name and
+(repository URL + docs folder) are unique per owner, slugs are globally unique,
+and each owner's clone lives under a namespaced path.
 
 Project configuration:
 
 ```text
 Project
+├── Owner (user)
 ├── Name
 ├── Git repository URL
 ├── Branch
@@ -129,17 +135,19 @@ Example:
 
 ```text
 Payments
+  Owner: alice
   Repository: https://git.example.com/payments.git
   Branch: main
   Folder: /docs
-  Update: every 10 minutes
+  Update: every 8 hours
 ```
 
 Default update interval:
 
-**10 minutes**
+**480 minutes (8 hours)**
 
-Admin can configure the interval.
+An owner (or admin) can configure the interval and manage the project through
+the in-app management page.
 
 ## 6. Git synchronization
 
@@ -181,7 +189,7 @@ Projects are automatically updated on the configured schedule.
 
 Default:
 
-**Every 10 minutes**
+**Every 8 hours**
 
 Admin can also trigger:
 
@@ -433,13 +441,13 @@ A failed project sync should leave the **last successfully generated content ava
 3. **One admin user.**
 4. **Projects are the primary organizational unit.**
 5. **Search is first-class.**
-6. **Automatic synchronization, default 10 minutes.**
+6. **Automatic synchronization, default 480 minutes (8 hours).**
 7. **Manual refresh is always available.**
 8. **No Git history is required.**
 9. **Simple Python monolith.**
 10. **SQLite for easy Compose deployment; PostgreSQL for k3s/production.**
 11. **No microservices or unnecessary infrastructure.**
-12. **Public pages, simple administration.**
+12. **Owner-private pages, self-service project management.**
 
 ## Main V1 flow
 
@@ -471,4 +479,4 @@ A failed project sync should leave the **last successfully generated content ava
                    pages
 ```
 
-The resulting V1 is deliberately small: **one monolith, one admin, projects backed by Git, automatic synchronization, generated read-only pages, and strong search/navigation.**
+The resulting V1 is deliberately small: **one monolith, user-owned Git-backed projects, automatic synchronization, generated read-only pages, and strong search/navigation.**

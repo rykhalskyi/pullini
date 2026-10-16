@@ -1,7 +1,7 @@
 """Project synchronization (HLD §6, §7).
 
 Each enabled project keeps a persistent shallow clone under
-``DATA_DIR/repositories/<slug>``. Synchronization is triggered on each
+``DATA_DIR/repositories/<user_id>/<slug>``. Synchronization is triggered on each
 project's interval (or manually) and must never take the application down: a
 failed sync records an error and leaves the last good clone in place.
 """
@@ -31,11 +31,11 @@ class SyncInProgress(Exception):
 
 
 def repository_path(project: Project) -> Path:
-    return Path(settings.REPOSITORIES_DIR) / project.slug
+    return Path(settings.REPOSITORIES_DIR) / str(project.user_id) / project.slug
 
 
 def _lock_path(project: Project) -> Path:
-    return Path(settings.REPOSITORIES_DIR) / f"{project.slug}.lock"
+    return Path(settings.REPOSITORIES_DIR) / str(project.user_id) / f"{project.slug}.lock"
 
 
 @contextmanager

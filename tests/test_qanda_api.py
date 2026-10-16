@@ -30,11 +30,12 @@ def post_json(client, url, payload, **headers):
     return client.post(url, data=json.dumps(payload), content_type="application/json", **headers)
 
 
-def make_project(name: str = "Payments", *, enabled: bool = True) -> Project:
+def make_project(name: str = "Payments", *, enabled: bool = True, user=None) -> Project:
     return Project.objects.create(
         name=name,
         repo_url="https://git.example.com/payments.git",
         enabled=enabled,
+        user=user,
     )
 
 
@@ -79,7 +80,7 @@ def test_endpoints_require_a_token(client):
 def test_create_page_qanda(client):
     user = make_user()
     headers = bearer(user)
-    project = make_project()
+    project = make_project(user=user)
     make_page(project)
 
     response = post_json(client, reverse("api:qanda_collection"), page_payload(project), **headers)
@@ -103,7 +104,7 @@ def test_create_page_qanda(client):
 def test_create_replaces_the_existing_qanda(client):
     user = make_user()
     headers = bearer(user)
-    project = make_project()
+    project = make_project(user=user)
     make_page(project)
     first = post_json(
         client, reverse("api:qanda_collection"), page_payload(project), **headers
@@ -143,7 +144,7 @@ def test_create_artifact_qanda(client):
 def test_list_is_scoped_to_the_token_owner(client):
     owner = make_user("owner")
     other = make_user("other")
-    project = make_project()
+    project = make_project(user=owner)
     make_page(project)
     post_json(client, reverse("api:qanda_collection"), page_payload(project), **bearer(owner))
 
@@ -155,7 +156,7 @@ def test_list_is_scoped_to_the_token_owner(client):
 def test_detail_and_delete(client):
     user = make_user()
     headers = bearer(user)
-    project = make_project()
+    project = make_project(user=user)
     make_page(project)
     qanda = post_json(
         client, reverse("api:qanda_collection"), page_payload(project), **headers
@@ -173,7 +174,7 @@ def test_detail_and_delete(client):
 def test_cross_user_access_returns_404(client):
     owner = make_user("owner")
     other = make_user("other")
-    project = make_project()
+    project = make_project(user=owner)
     make_page(project)
     qanda = post_json(
         client, reverse("api:qanda_collection"), page_payload(project), **bearer(owner)
@@ -211,8 +212,9 @@ def test_target_must_be_exactly_one(client):
 
 
 def test_unknown_target_returns_404(client):
-    headers = bearer(make_user())
-    project = make_project()
+    user = make_user()
+    headers = bearer(user)
+    project = make_project(user=user)
 
     missing_page = post_json(
         client,
@@ -229,8 +231,9 @@ def test_unknown_target_returns_404(client):
 
 
 def test_invalid_entries_are_a_400(client):
-    headers = bearer(make_user())
-    project = make_project()
+    user = make_user()
+    headers = bearer(user)
+    project = make_project(user=user)
     make_page(project)
 
     response = post_json(

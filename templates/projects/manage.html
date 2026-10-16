@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Manage projects · Pullini{% endblock %}
+{% block content %}
+<header>
+  <h1 class="text-3xl font-bold tracking-tight text-navy">Manage projects</h1>
+  <p class="mt-1 text-ink">Projects are private to you — only you and administrators can see them.</p>
+</header>
+
+<section class="mt-8 rounded-xl border border-line bg-panel p-6">
+  <h2 class="text-sm font-semibold uppercase tracking-wide text-ink/60">Add a project</h2>
+  <form method="post" action="{% url 'projects:create' %}" class="mt-4 grid gap-4 sm:grid-cols-2">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+    <div class="sm:col-span-2 rounded-lg border border-git/40 bg-git/5 px-4 py-2 text-sm text-git">
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+    {% for field in form %}
+    <div class="{% if field.name == 'description' %}sm:col-span-2{% endif %}">
+      <label for="{{ field.id_for_label }}" class="block text-xs font-medium uppercase tracking-wide text-ink/60">
+        {{ field.label }}{% if field.field.required %} <span class="text-git">*</span>{% endif %}
+      </label>
+      <div class="mt-1">{{ field }}</div>
+      {% if field.help_text %}
+      <p class="mt-1 text-xs text-ink/60">{{ field.help_text }}</p>
+      {% endif %}
+      {% for error in field.errors %}
+      <p class="mt-1 text-xs text-git">{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endfor %}
+    <div class="sm:col-span-2">
+      <button
+        type="submit"
+        class="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90"
+      >
+        Create project
+      </button>
+    </div>
+  </form>
+</section>
+
+<section class="mt-10">
+  <h2 class="text-sm font-semibold uppercase tracking-wide text-ink/60">Your projects</h2>
+  <ul class="mt-4 divide-y divide-line overflow-hidden rounded-xl border border-line bg-panel">
+    {% for project in projects %}
+    <li class="flex items-center justify-between gap-4 px-5 py-3">
+      <div class="min-w-0">
+        <a href="{{ project.get_absolute_url }}" class="font-medium text-navy hover:text-brand"
+          >{{ project.name }}</a
+        >
+        <p class="mt-0.5 truncate font-mono text-xs text-ink/60">{{ project.display_url }}</p>
+      </div>
+      <div class="flex shrink-0 items-center gap-2">
+        {% if not project.enabled %}
+        <span class="rounded-full bg-soft px-2 py-0.5 text-xs font-medium text-ink/70">Disabled</span>
+        {% endif %}
+        <form method="post" action="{% url 'projects:delete' project.slug %}">
+          {% csrf_token %}
+          <button
+            type="submit"
+            class="rounded-md border border-git/40 px-3 py-1.5 text-xs font-medium text-git transition-colors hover:bg-git/5"
+          >
+            Delete
+          </button>
+        </form>
+      </div>
+    </li>
+    {% empty %}
+    <li class="px-5 py-6 text-sm text-ink/70">No projects yet. Add one above.</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

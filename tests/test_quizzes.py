@@ -20,11 +20,12 @@ def make_user(username: str = "reader"):
     return get_user_model().objects.create_user(username=username, password="s3cret-pass")
 
 
-def make_project(name: str = "Payments", *, enabled: bool = True) -> Project:
+def make_project(name: str = "Payments", *, enabled: bool = True, user=None) -> Project:
     return Project.objects.create(
         name=name,
         repo_url="https://git.example.com/payments.git",
         enabled=enabled,
+        user=user,
     )
 
 
@@ -313,7 +314,7 @@ def test_quiz_submit_shows_back_to_article(client):
 
 def test_wiki_page_shows_quiz_button_and_score(client):
     user = make_user()
-    project = make_project()
+    project = make_project(user=user)
     page = make_page(project, path="index.md", title="Home")
     quiz = services.create_quiz(user, page=page, questions=[q(correct=0)])
     services.score_submission(quiz, [0])
@@ -327,7 +328,7 @@ def test_wiki_page_shows_quiz_button_and_score(client):
 
 def test_wiki_page_shows_no_quiz_hint(client):
     user = make_user()
-    project = make_project()
+    project = make_project(user=user)
     page = make_page(project, path="index.md", title="Home")
     client.force_login(user)
 
@@ -352,7 +353,7 @@ def test_artifact_detail_no_quiz_hint_copies_slug(client):
 
 def test_project_detail_lists_page_quizzes(client):
     user = make_user()
-    project = make_project()
+    project = make_project(user=user)
     page = make_page(project, path="index.md", title="Home")
     services.create_quiz(user, page=page, questions=[q()])
     client.force_login(user)

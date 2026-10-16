@@ -61,7 +61,20 @@ def remote_repo(tmp_path, monkeypatch) -> RemoteRepo:
 
 
 @pytest.fixture
-def project(settings, tmp_path, remote_repo):
+def owner(db):
+    from django.contrib.auth import get_user_model
+
+    return get_user_model().objects.create_user("owner", password="s3cret-pass")
+
+
+@pytest.fixture
+def owner_client(client, owner):
+    client.force_login(owner)
+    return client
+
+
+@pytest.fixture
+def project(settings, tmp_path, remote_repo, owner):
     from pullini.projects.models import Project
 
     settings.REPOSITORIES_DIR = tmp_path / "repositories"
@@ -69,4 +82,5 @@ def project(settings, tmp_path, remote_repo):
         name="Payments",
         repo_url=f"file://{remote_repo.bare}",
         branch="main",
+        user=owner,
     )

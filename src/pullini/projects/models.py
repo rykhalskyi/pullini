@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 from urllib.parse import urlsplit, urlunsplit
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -19,7 +20,10 @@ from django.utils.text import slugify
 _SCP_LIKE_GIT_URL = re.compile(r"^[\w.-]+@[\w.-]+:[\w./-]+$")
 _ALLOWED_SCHEMES = ("http://", "https://", "ssh://", "git://", "file://")
 
-DEFAULT_UPDATE_INTERVAL_MINUTES = 10
+DEFAULT_UPDATE_INTERVAL_MINUTES = 480
+
+# Slugs that would shadow the management URLs under /projects/ (T15).
+RESERVED_SLUGS = frozenset({"manage", "create"})
 
 
 def validate_git_url(value: str) -> None:
@@ -32,7 +36,15 @@ def validate_git_url(value: str) -> None:
 
 
 class Project(models.Model):
-    name = models.CharField(max_length=200, unique=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="projects",
+        null=True,
+        blank=True,
+    )
+
+    name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True, blank=True)
     description = models.TextField(blank=True)
 
@@ -55,6 +67,17 @@ class Project(models.Model):
 
     class Meta:
         ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "name"],
+                name="unique_project_name_per_user",
+            ),
+            models.UniqueConstraint(
+                fields=["user", "repo_url", "docs_folder"],
+                name="unique_project_source_per_user",
+            ),
+        ]
+        indexes = [models.Index(fields=["user", "name"])]
 
     def __str__(self) -> str:
         return self.name
@@ -73,6 +96,8 @@ class Project(models.Model):
 
     def _unique_slug(self) -> str:
         base = slugify(self.name) or "project"
+        if base in RESERVED_SLUGS:
+            base = f"{base}-project"
         slug = base
         suffix = 2
         existing = Project.objects.exclude(pk=self.pk)

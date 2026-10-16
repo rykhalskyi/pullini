@@ -36,3 +36,7 @@
 ## [2026-10-13] ticket | T13 — Q&A REST API
 ## [2026-10-13] ticket | T14 — Q&A MCP tools
 ## [2026-10-14] ticket | Q&A feature (T12 core, T13 REST API, T14 MCP tools)
+## [2026-10-15] ticket | T15 — User-owned private projects
+## [2026-10-16] ticket | T15 user-owned private projects
+## [2026-10-16] update | Default update interval 480 min
+## [2026-10-16] update | Fix superuser MultipleObjectsReturned on duplicate slugs; admin manages in Django admin

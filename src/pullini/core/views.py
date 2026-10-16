@@ -8,7 +8,7 @@ from django.shortcuts import render
 
 from pullini.core.health import collect_status
 from pullini.favorites.services import recent_favorites
-from pullini.projects.models import Project
+from pullini.projects.access import visible_projects
 
 
 def _may_view_details(request: HttpRequest) -> bool:
@@ -22,7 +22,7 @@ def home(request: HttpRequest):
         "home.html",
         {
             "status": collect_status(detailed=_may_view_details(request)),
-            "projects": Project.objects.filter(enabled=True),
+            "projects": visible_projects(request.user),
             "favorites": recent_favorites(request.user),
         },
     )

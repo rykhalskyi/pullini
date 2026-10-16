@@ -30,11 +30,18 @@ def post_json(client, url, payload, **headers):
     return client.post(url, data=json.dumps(payload), content_type="application/json", **headers)
 
 
-def make_project(name: str = "Payments", *, enabled: bool = True) -> Project:
+def make_project(
+    name: str = "Payments",
+    *,
+    enabled: bool = True,
+    user=None,
+    repo_url: str = "https://git.example.com/payments.git",
+) -> Project:
     return Project.objects.create(
         name=name,
-        repo_url="https://git.example.com/payments.git",
+        repo_url=repo_url,
         enabled=enabled,
+        user=user,
     )
 
 
@@ -88,7 +95,7 @@ def test_endpoints_require_a_token(client):
 def test_create_page_quiz(client):
     user = make_user()
     headers = bearer(user)
-    project = make_project()
+    project = make_project(user=user)
     make_page(project)
 
     response = post_json(client, reverse("api:quiz_collection"), page_payload(project), **headers)
@@ -112,7 +119,7 @@ def test_create_page_quiz(client):
 def test_create_replaces_the_existing_quiz(client):
     user = make_user()
     headers = bearer(user)
-    project = make_project()
+    project = make_project(user=user)
     make_page(project)
     first = post_json(
         client, reverse("api:quiz_collection"), page_payload(project), **headers
@@ -152,7 +159,7 @@ def test_create_artifact_quiz(client):
 def test_list_is_scoped_to_the_token_owner(client):
     owner = make_user("owner")
     other = make_user("other")
-    project = make_project()
+    project = make_project(user=owner)
     make_page(project)
     post_json(client, reverse("api:quiz_collection"), page_payload(project), **bearer(owner))
 
@@ -164,7 +171,7 @@ def test_list_is_scoped_to_the_token_owner(client):
 def test_detail_and_delete(client):
     user = make_user()
     headers = bearer(user)
-    project = make_project()
+    project = make_project(user=user)
     make_page(project)
     quiz = post_json(
         client, reverse("api:quiz_collection"), page_payload(project), **headers
@@ -182,7 +189,7 @@ def test_detail_and_delete(client):
 def test_cross_user_access_returns_404(client):
     owner = make_user("owner")
     other = make_user("other")
-    project = make_project()
+    project = make_project(user=owner)
     make_page(project)
     quiz = post_json(
         client, reverse("api:quiz_collection"), page_payload(project), **bearer(owner)
@@ -199,7 +206,7 @@ def test_cross_user_access_returns_404(client):
 def test_attempt_scores_and_persists(client):
     user = make_user()
     headers = bearer(user)
-    project = make_project()
+    project = make_project(user=user)
     make_page(project)
     quiz = post_json(
         client,
@@ -226,7 +233,7 @@ def test_attempt_scores_and_persists(client):
 def test_attempt_requires_an_answers_list(client):
     user = make_user()
     headers = bearer(user)
-    project = make_project()
+    project = make_project(user=user)
     make_page(project)
     quiz = post_json(
         client, reverse("api:quiz_collection"), page_payload(project), **headers
@@ -241,7 +248,7 @@ def test_attempt_requires_an_answers_list(client):
 def test_attempt_is_owner_scoped(client):
     owner = make_user("owner")
     other = make_user("other")
-    project = make_project()
+    project = make_project(user=owner)
     make_page(project)
     quiz = post_json(
         client, reverse("api:quiz_collection"), page_payload(project), **bearer(owner)
@@ -281,8 +288,9 @@ def test_target_must_be_exactly_one(client):
 
 
 def test_unknown_target_returns_404(client):
-    headers = bearer(make_user())
-    project = make_project()
+    user = make_user()
+    headers = bearer(user)
+    project = make_project(user=user)
 
     missing_page = post_json(
         client,
@@ -299,8 +307,9 @@ def test_unknown_target_returns_404(client):
 
 
 def test_invalid_questions_are_a_400(client):
-    headers = bearer(make_user())
-    project = make_project()
+    user = make_user()
+    headers = bearer(user)
+    project = make_project(user=user)
     make_page(project)
 
     response = post_json(
@@ -345,8 +354,8 @@ def test_disallowed_methods_return_405(client):
 def test_pages_list_and_filter(client):
     user = make_user()
     headers = bearer(user)
-    payments = make_project("Payments")
-    billing = make_project("Billing")
+    payments = make_project("Payments", user=user, repo_url="https://git.example.com/payments.git")
+    billing = make_project("Billing", user=user, repo_url="https://git.example.com/billing.git")
     make_page(payments, path="guide/setup.md", title="Setup")
     make_page(payments, path="index.md", title="Home")
     make_page(billing, path="intro.md", title="Intro")
@@ -363,7 +372,7 @@ def test_pages_list_and_filter(client):
 def test_page_item_returns_source(client):
     user = make_user()
     headers = bearer(user)
-    project = make_project()
+    project = make_project(user=user)
     make_page(project, path="guide/setup.md", title="Setup", content="# Setup\n\nHello.")
 
     body = client.get(
@@ -376,10 +385,11 @@ def test_page_item_returns_source(client):
     assert body["content"] == "# Setup\n\nHello."
 
 
-def test_hidden_projects_are_not_readable(client):
+def test_other_users_projects_are_not_readable(client):
     user = make_user()
+    other = make_user("other")
     headers = bearer(user)
-    project = make_project(enabled=False)
+    project = make_project(user=other)
     make_page(project)
 
     listing = client.get(reverse("api:page_collection"), **headers).json()
@@ -393,7 +403,7 @@ def test_hidden_projects_are_not_readable(client):
 
 def test_unknown_page_is_a_json_404(client):
     user = make_user()
-    project = make_project()
+    project = make_project(user=user)
 
     response = client.get(
         reverse("api:page_item", args=[project.slug, "missing.md"]), **bearer(user)

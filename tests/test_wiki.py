@@ -5,6 +5,7 @@ from __future__ import annotations
 import shutil
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from pullini.projects.models import Project
@@ -228,51 +229,51 @@ def test_generation_ignores_symlinked_docs_folder(project, remote_repo, tmp_path
 # --- views ------------------------------------------------------------------
 
 
-def test_wiki_tree_lists_pages(client, project, remote_repo):
+def test_wiki_tree_lists_pages(owner_client, project, remote_repo):
     remote_repo.write("docs/guide/setup.md", "# Setup\n")
     sync_project(project, force=True)
 
-    response = client.get(reverse("wiki:tree", args=[project.slug]))
+    response = owner_client.get(reverse("wiki:tree", args=[project.slug]))
 
     assert response.status_code == 200
     assert b"Setup" in response.content
 
 
-def test_wiki_recent(client, project):
+def test_wiki_recent(owner_client, project):
     sync_project(project, force=True)
 
-    assert b"Home" in client.get(reverse("wiki:recent", args=[project.slug])).content
+    assert b"Home" in owner_client.get(reverse("wiki:recent", args=[project.slug])).content
 
 
-def test_wiki_page_renders_content_and_source_path(client, project):
+def test_wiki_page_renders_content_and_source_path(owner_client, project):
     sync_project(project, force=True)
     page = project.pages.get(path="index.md")
 
-    response = client.get(reverse("wiki:page", args=[project.slug, page.url_path]))
+    response = owner_client.get(reverse("wiki:page", args=[project.slug, page.url_path]))
 
     assert response.status_code == 200
     assert b"Home" in response.content
     assert page.path.encode() in response.content
 
 
-def test_wiki_page_renders_code_blocks_with_copy_script(client, project, remote_repo):
+def test_wiki_page_renders_code_blocks_with_copy_script(owner_client, project, remote_repo):
     remote_repo.write("docs/code.md", "# Code\n\n```python\nprint('hi')\n```\n")
     sync_project(project, force=True)
     page = project.pages.get(path="code.md")
 
-    response = client.get(reverse("wiki:page", args=[project.slug, page.url_path]))
+    response = owner_client.get(reverse("wiki:page", args=[project.slug, page.url_path]))
 
     assert b"<pre>" in response.content
     assert b"js/copy-code.js" in response.content
     assert b"js/mermaid-render.js" not in response.content
 
 
-def test_wiki_page_loads_mermaid_only_for_diagram_pages(client, project, remote_repo):
+def test_wiki_page_loads_mermaid_only_for_diagram_pages(owner_client, project, remote_repo):
     remote_repo.write("docs/diagram.md", "# Diagram\n\n```mermaid\ngraph TD\n  A-->B\n```\n")
     sync_project(project, force=True)
     page = project.pages.get(path="diagram.md")
 
-    response = client.get(reverse("wiki:page", args=[project.slug, page.url_path]))
+    response = owner_client.get(reverse("wiki:page", args=[project.slug, page.url_path]))
 
     assert response.status_code == 200
     assert b'class="mermaid"' in response.content
@@ -280,55 +281,58 @@ def test_wiki_page_loads_mermaid_only_for_diagram_pages(client, project, remote_
     assert b"js/mermaid-render.js" in response.content
 
 
-def test_wiki_page_unknown_is_404(client, project):
+def test_wiki_page_unknown_is_404(owner_client, project):
     sync_project(project, force=True)
 
-    assert client.get(reverse("wiki:page", args=[project.slug, "nope"])).status_code == 404
+    assert owner_client.get(reverse("wiki:page", args=[project.slug, "nope"])).status_code == 404
 
 
-def test_wiki_asset_is_served(client, project, remote_repo):
+def test_wiki_asset_is_served(owner_client, project, remote_repo):
     remote_repo.write("docs/img/logo.svg", "<svg></svg>")
     sync_project(project, force=True)
 
-    response = client.get(reverse("wiki:asset", args=[project.slug, "img/logo.svg"]))
+    response = owner_client.get(reverse("wiki:asset", args=[project.slug, "img/logo.svg"]))
 
     assert response.status_code == 200
     assert b"<svg>" in b"".join(response.streaming_content)
 
 
-def test_wiki_asset_missing_is_404(client, project):
+def test_wiki_asset_missing_is_404(owner_client, project):
     sync_project(project, force=True)
 
-    assert client.get(reverse("wiki:asset", args=[project.slug, "nope.png"])).status_code == 404
+    assert (
+        owner_client.get(reverse("wiki:asset", args=[project.slug, "nope.png"])).status_code == 404
+    )
 
 
-def test_wiki_asset_scriptable_types_are_downloaded(client, project, remote_repo):
+def test_wiki_asset_scriptable_types_are_downloaded(owner_client, project, remote_repo):
     remote_repo.write("docs/img/logo.svg", "<svg onload=alert(1)></svg>")
     sync_project(project, force=True)
 
-    response = client.get(reverse("wiki:asset", args=[project.slug, "img/logo.svg"]))
+    response = owner_client.get(reverse("wiki:asset", args=[project.slug, "img/logo.svg"]))
 
     assert response.status_code == 200
     assert response["Content-Disposition"].startswith("attachment")
     assert response["X-Content-Type-Options"] == "nosniff"
 
 
-def test_wiki_asset_images_are_inline(client, project, remote_repo):
+def test_wiki_asset_images_are_inline(owner_client, project, remote_repo):
     remote_repo.write("docs/img/logo.png", "not-a-real-png")
     sync_project(project, force=True)
 
-    response = client.get(reverse("wiki:asset", args=[project.slug, "img/logo.png"]))
+    response = owner_client.get(reverse("wiki:asset", args=[project.slug, "img/logo.png"]))
 
     assert response.status_code == 200
     assert not response["Content-Disposition"].startswith("attachment")
     assert response["X-Content-Type-Options"] == "nosniff"
 
 
-def test_wiki_hidden_for_disabled_project(client, remote_repo):
+def test_wiki_other_users_project_is_hidden(owner_client, remote_repo, owner):
+    other = get_user_model().objects.create_user("other", password="s3cret-pass")
     hidden = Project.objects.create(
         name="Hidden",
         repo_url=f"file://{remote_repo.bare}",
-        enabled=False,
+        user=other,
     )
 
-    assert client.get(reverse("wiki:tree", args=[hidden.slug])).status_code == 404
+    assert owner_client.get(reverse("wiki:tree", args=[hidden.slug])).status_code == 404
