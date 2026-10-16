@@ -17,6 +17,7 @@ from pullini.projects.sync import sync_project
 class ProjectAdmin(admin.ModelAdmin):
     list_display = (
         "name",
+        "user",
         "branch",
         "docs_folder",
         "update_interval_minutes",
@@ -24,14 +25,14 @@ class ProjectAdmin(admin.ModelAdmin):
         "sync_status",
         "updated_at",
     )
-    list_filter = ("enabled",)
+    list_filter = ("enabled", "user")
     list_editable = ("enabled",)
     search_fields = ("name", "repo_url", "docs_folder")
     prepopulated_fields = {"slug": ("name",)}
     readonly_fields = ("created_at", "updated_at")
     actions = ("refresh_now",)
     fieldsets = (
-        (None, {"fields": ("name", "slug", "description", "enabled")}),
+        (None, {"fields": ("user", "name", "slug", "description", "enabled")}),
         ("Git source", {"fields": ("repo_url", "branch", "docs_folder")}),
         ("Synchronization", {"fields": ("update_interval_minutes",)}),
         ("Timestamps", {"fields": ("created_at", "updated_at")}),

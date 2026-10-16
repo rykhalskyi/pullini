@@ -19,6 +19,24 @@
   {% endif %}
 </div>
 
+{% if can_manage %}
+<div class="mt-6 flex items-center gap-3">
+  <form method="post" action="{% url 'projects:refresh' project.slug %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.path }}" />
+    <button
+      type="submit"
+      class="rounded-md border border-line bg-panel px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-soft"
+    >
+      Refresh now
+    </button>
+  </form>
+  <a href="{% url 'projects:manage' %}" class="text-sm text-navy/80 transition-colors hover:text-brand"
+    >Manage projects</a
+  >
+</div>
+{% endif %}
+
 <div class="mt-8 rounded-xl border border-line bg-panel p-6">
   <dl class="grid gap-x-10 gap-y-5 sm:grid-cols-2">
     <div>

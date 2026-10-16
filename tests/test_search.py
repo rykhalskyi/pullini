@@ -23,65 +23,63 @@ def make_user(username: str = "reader"):
     return get_user_model().objects.create_user(username=username, password="s3cret-pass")
 
 
-def test_search_finds_page_by_content(client, project, remote_repo):
+def test_search_finds_page_by_content(owner_client, project, remote_repo):
     remote_repo.write("docs/guide/setup.md", "# Setup\n\nInstall the widget with pip.\n")
     sync_project(project, force=True)
 
-    response = client.get(reverse("search:global"), {"q": "widget"})
+    response = owner_client.get(reverse("search:global"), {"q": "widget"})
 
     assert response.status_code == 200
     assert b"Setup" in response.content
 
 
-def test_search_finds_page_by_title(client, project):
+def test_search_finds_page_by_title(owner_client, project):
     sync_project(project, force=True)
 
-    response = client.get(reverse("search:global"), {"q": "Home"})
+    response = owner_client.get(reverse("search:global"), {"q": "Home"})
 
     assert b"1 result" in response.content
     assert b"/projects/payments/wiki/index/" in response.content
 
 
-def test_search_matches_page_path(client, project, remote_repo):
+def test_search_matches_page_path(owner_client, project, remote_repo):
     # "zebra" appears only in the path, not the title or body.
     remote_repo.write("docs/guide/zebra.md", "# Overview\n\nHello.\n")
     sync_project(project, force=True)
 
-    response = client.get(reverse("search:global"), {"q": "zebra"})
+    response = owner_client.get(reverse("search:global"), {"q": "zebra"})
 
     assert b"Overview" in response.content
 
 
-def test_search_matches_project_name(client, project):
+def test_search_matches_project_name(owner_client, project):
     sync_project(project, force=True)
 
-    response = client.get(reverse("search:global"), {"q": "Payments"})
+    response = owner_client.get(reverse("search:global"), {"q": "Payments"})
 
     assert b"1 result" in response.content
 
 
-def test_search_excludes_disabled_projects(client, project):
+def test_search_excludes_other_users_projects(client, project):
     sync_project(project, force=True)
-    project.enabled = False
-    project.save()
+    client.force_login(make_user("other"))
 
     response = client.get(reverse("search:global"), {"q": "Home"})
 
     assert b"No results matched" in response.content
 
 
-def test_scoped_search_returns_results(client, project):
+def test_scoped_search_returns_results(owner_client, project):
     sync_project(project, force=True)
 
-    response = client.get(reverse("search:project", args=[project.slug]), {"q": "Home"})
+    response = owner_client.get(reverse("search:project", args=[project.slug]), {"q": "Home"})
 
     assert response.status_code == 200
     assert b"1 result" in response.content
 
 
-def test_scoped_search_hidden_for_disabled_project(client, project):
-    project.enabled = False
-    project.save()
+def test_scoped_search_hidden_for_other_users_project(client, project):
+    client.force_login(make_user("other"))
 
     response = client.get(reverse("search:project", args=[project.slug]))
 
@@ -119,11 +117,11 @@ def test_snippet_centers_on_match():
 
 
 @pytest.mark.skipif(connection.vendor != "postgresql", reason="PostgreSQL only")
-def test_postgres_full_text_search(client, project, remote_repo):
+def test_postgres_full_text_search(owner_client, project, remote_repo):
     remote_repo.write("docs/guide.md", "# Guide\n\nThe zanzibar protocol is documented here.\n")
     sync_project(project, force=True)
 
-    response = client.get(reverse("search:global"), {"q": "zanzibar"})
+    response = owner_client.get(reverse("search:global"), {"q": "zanzibar"})
 
     assert b"Guide" in response.content
 
@@ -220,26 +218,22 @@ def test_search_artifacts_require_login(client):
     assert b"Widget Report" not in response.content
 
 
-def test_search_lists_artifacts_before_pages(client, project, remote_repo):
+def test_search_lists_artifacts_before_pages(owner_client, project, remote_repo, owner):
     remote_repo.write("docs/guide/widgethub.md", "# Widgethub\n\nwidget widget\n")
     sync_project(project, force=True)
-    user = make_user()
     artifact_services.create_artifact(
-        user, title="Widget Notes", content="# Widget Notes\n\nwidget"
+        owner, title="Widget Notes", content="# Widget Notes\n\nwidget"
     )
-    client.force_login(user)
 
-    response = client.get(reverse("search:global"), {"q": "widget"})
+    response = owner_client.get(reverse("search:global"), {"q": "widget"})
 
     assert response.content.index(b"Widget Notes") < response.content.index(b"Widgethub")
 
 
-def test_scoped_search_excludes_artifacts(client, project, remote_repo):
+def test_scoped_search_excludes_artifacts(owner_client, project, remote_repo, owner):
     sync_project(project, force=True)
-    user = make_user()
-    artifact_services.create_artifact(user, title="Widget Notes", content="# Widget Notes")
-    client.force_login(user)
+    artifact_services.create_artifact(owner, title="Widget Notes", content="# Widget Notes")
 
-    response = client.get(reverse("search:project", args=[project.slug]), {"q": "widget"})
+    response = owner_client.get(reverse("search:project", args=[project.slug]), {"q": "widget"})
 
     assert b"Widget Notes" not in response.content

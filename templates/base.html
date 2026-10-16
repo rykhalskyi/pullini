@@ -48,6 +48,13 @@
           class="text-sm text-navy/80 transition-colors hover:text-brand"
           >Browse projects</a
         >
+        {% if user.is_authenticated %}
+        <a
+          href="{% url 'projects:manage' %}"
+          class="text-sm text-navy/80 transition-colors hover:text-brand"
+          >Manage projects</a
+        >
+        {% endif %}
         <a
           href="{% url 'favorites:list' %}"
           class="text-sm text-navy/80 transition-colors hover:text-brand"

@@ -13,7 +13,7 @@ from django.utils import timezone
 from pullini.core.health import collect_status
 from pullini.projects import git
 from pullini.projects.git import git_env
-from pullini.projects.models import SyncStatus
+from pullini.projects.models import Project, SyncStatus
 from pullini.projects.sync import (
     SyncInProgress,
     is_due,
@@ -160,3 +160,31 @@ def test_health_reports_last_sync(project):
     sync_project(project, force=True)
 
     assert collect_status()["last_sync"] is not None
+
+
+def test_repository_path_is_namespaced_by_owner(project):
+    assert repository_path(project).parent.name == str(project.user_id)
+    assert repository_path(project).name == project.slug
+
+
+def test_clone_is_removed_when_project_deleted(project, django_capture_on_commit_callbacks):
+    sync_project(project, force=True)
+    repo = repository_path(project)
+
+    with django_capture_on_commit_callbacks(execute=True):
+        project.delete()
+
+    assert not repo.exists()
+
+
+def test_deleting_owner_cascades_projects_and_clone(
+    project, owner, django_capture_on_commit_callbacks
+):
+    sync_project(project, force=True)
+    repo = repository_path(project)
+
+    with django_capture_on_commit_callbacks(execute=True):
+        owner.delete()
+
+    assert not Project.objects.filter(pk=project.pk).exists()
+    assert not repo.exists()

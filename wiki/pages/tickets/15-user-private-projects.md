@@ -1,7 +1,7 @@
 ---
 created: 2026-10-15
 type: ticket
-status: proposed
+status: implemented
 summary: T15 — user-owned private projects: owner-scoped visibility, an in-app management page, per-user slugs + namespaced clones, superuser oversight and cascade cleanup.
 ---
 
@@ -110,4 +110,18 @@ To be recorded with `wiki.mjs decision`:
 
 ## Outcome
 
-Not started.
+Implemented. `Project.user` FK (nullable, cascade) with per-owner unique
+`(user, slug)` / `(user, name)` and an owner-scoped `_unique_slug`; migrations
+`0003_project_owner` + `0004_assign_ownerless_projects` assign existing projects
+to the earliest superuser. `visible_projects(user)` is owner-private (superuser
+sees all, anonymous none) and `can_manage` gates refresh/delete. Clones and locks
+move to `REPOSITORIES_DIR/<user_id>/<slug>`; a `post_delete` signal removes the
+clone and lock on commit, and deleting the owner cascades through projects,
+pages, quizzes, Q&A and favorites. New `ProjectForm`, `project_manage` /
+`project_create` (inline forced sync, failures tolerated) / `project_delete`
+views and a `projects/manage.html` page (nav + detail links) replace admin-only
+management; search, home and the admin are owner-scoped. Tests cover owner
+isolation, superuser oversight, per-user slugs, management and cascade cleanup.
+
+Open item resolved: no relocation command — old ownerless clones are left in
+place and re-cloned under the new namespaced path on next sync.

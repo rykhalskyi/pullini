@@ -37,3 +37,4 @@
 ## [2026-10-13] ticket | T14 — Q&A MCP tools
 ## [2026-10-14] ticket | Q&A feature (T12 core, T13 REST API, T14 MCP tools)
 ## [2026-10-15] ticket | T15 — User-owned private projects
+## [2026-10-16] ticket | T15 user-owned private projects

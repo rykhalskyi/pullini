@@ -20,11 +20,12 @@ def make_user(username: str = "reader"):
     return get_user_model().objects.create_user(username=username, password="s3cret-pass")
 
 
-def make_project(name: str = "Payments", *, enabled: bool = True) -> Project:
+def make_project(name: str = "Payments", *, enabled: bool = True, user=None) -> Project:
     return Project.objects.create(
         name=name,
         repo_url="https://git.example.com/payments.git",
         enabled=enabled,
+        user=user,
     )
 
 
@@ -290,7 +291,7 @@ def test_qanda_detail_flags_a_stale_set(client):
 
 def test_wiki_page_shows_qanda_button(client):
     user = make_user()
-    project = make_project()
+    project = make_project(user=user)
     page = make_page(project, path="index.md", title="Home")
     qanda = services.create_qanda(user, page=page, entries=[e(), e()])
     client.force_login(user)
@@ -303,7 +304,7 @@ def test_wiki_page_shows_qanda_button(client):
 
 def test_wiki_page_shows_no_qanda_hint(client):
     user = make_user()
-    project = make_project()
+    project = make_project(user=user)
     page = make_page(project, path="index.md", title="Home")
     client.force_login(user)
 
@@ -339,7 +340,7 @@ def test_artifact_detail_shows_qanda_button(client):
 
 def test_project_detail_lists_page_qanda(client):
     user = make_user()
-    project = make_project()
+    project = make_project(user=user)
     page = make_page(project, path="index.md", title="Home")
     services.create_qanda(user, page=page, entries=[e()])
     client.force_login(user)
@@ -352,7 +353,7 @@ def test_project_detail_lists_page_qanda(client):
 
 def test_anonymous_wiki_page_shows_no_qanda_affordance(client):
     user = make_user()
-    project = make_project()
+    project = make_project(user=user)
     page = make_page(project, path="index.md", title="Home")
     services.create_qanda(user, page=page, entries=[e()])
 
