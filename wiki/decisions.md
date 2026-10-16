@@ -51,3 +51,6 @@ Append-only decision record. The "why" lives here; the full change history lives
 - [2026-10-15] D-47 — The superuser flag, not is_staff, grants cross-user project visibility and deletion — because admin is the single superuser (D-35)
 - [2026-10-15] D-48 — Project slug and name are unique per owner and clone/lock paths are namespaced by owner — because two users may pick the same project name
 - [2026-10-15] D-49 — Project management moves from the Django admin to an in-app page (supersedes D-12) — because non-admin owners must manage their own projects without admin access
+- [2026-10-16] D-50 — The default project update interval is 480 minutes (8 hours) instead of 10 minutes — because projects are user-owned and background sync every few minutes is unnecessary load for a personal docs browser (revises D-05's number)
+- [2026-10-16] D-51 — Project slugs are globally unique again; only name and (repo_url, docs_folder) stay unique per owner — because superusers browse every owner's projects and slug-only URLs must resolve unambiguously (supersedes the slug half of D-48)
+- [2026-10-16] D-52 — Superusers manage projects exclusively in the Django admin; the in-app manage/create/delete/refresh surface is owner-only — because admin already has full project management there and the in-app page is meant for non-admin owners (refines D-49)

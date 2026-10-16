@@ -12,8 +12,8 @@ from pullini.projects.models import Project
 def visible_projects(user):
     """Projects the given user may browse.
 
-    Superusers see every project (including disabled ones); authenticated users
-    see their own; anonymous visitors see none.
+    Superusers see every project (including disabled ones) for oversight;
+    authenticated users see their own; anonymous visitors see none.
     """
     if user is None or not user.is_authenticated:
         return Project.objects.none()
@@ -22,8 +22,19 @@ def visible_projects(user):
     return Project.objects.filter(user=user)
 
 
+def is_owner(user, project: Project) -> bool:
+    """Whether ``user`` owns ``project`` and may manage it from the web UI.
+
+    Superusers manage projects exclusively through the Django admin, so this is
+    strictly the owner (T15).
+    """
+    if user is None or not user.is_authenticated:
+        return False
+    return project.user_id == user.id
+
+
 def can_manage(user, project: Project) -> bool:
-    """Whether ``user`` may refresh or delete ``project`` (owner or superuser)."""
+    """Whether ``user`` may manage ``project`` (owner or superuser)."""
     if user is None or not user.is_authenticated:
         return False
     return user.is_superuser or project.user_id == user.id

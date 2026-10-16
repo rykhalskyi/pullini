@@ -44,7 +44,7 @@ def test_defaults_and_slug():
 
     assert project.branch == "main"
     assert project.docs_folder == "docs"
-    assert project.update_interval_minutes == 10
+    assert project.update_interval_minutes == 480
     assert project.enabled is True
     assert project.slug == "payments"
     assert str(project) == "Payments"
@@ -84,19 +84,19 @@ def test_project_page_hides_embedded_credentials(client):
 
 def test_slug_collision_gets_suffix():
     user = make_user()
-    first = make_project(user=user, name="My Docs")
-    second = make_project(user=user, name="My-Docs")
+    first = make_project(user=user, name="My Docs", repo_url="https://git.example.com/a.git")
+    second = make_project(user=user, name="My-Docs", repo_url="https://git.example.com/b.git")
 
     assert first.slug == "my-docs"
     assert second.slug == "my-docs-2"
 
 
-def test_same_name_allowed_for_different_owners():
+def test_slug_is_globally_unique_across_owners():
     first = make_project(user=make_user("a"), name="Docs")
     second = make_project(user=make_user("b"), name="Docs")
 
     assert first.slug == "docs"
-    assert second.slug == "docs"
+    assert second.slug == "docs-2"
 
 
 def test_reserved_slug_is_avoided():
@@ -240,6 +240,28 @@ def test_manage_lists_own_projects_only(client):
     assert b"Theirs" not in content
 
 
+def test_manage_redirects_superuser_to_admin(client):
+    admin = make_user("admin", is_superuser=True)
+    client.force_login(admin)
+
+    response = client.get(reverse("projects:manage"))
+
+    assert response.status_code == 302
+    assert response.url == reverse("admin:projects_project_changelist")
+
+
+def test_create_redirects_superuser_to_admin(client, monkeypatch):
+    admin = make_user("admin", is_superuser=True)
+    client.force_login(admin)
+    monkeypatch.setattr(views, "sync_project", lambda *a, **k: pytest.fail("must not sync"))
+
+    response = client.post(reverse("projects:create"), {"name": "X"})
+
+    assert response.status_code == 302
+    assert response.url == reverse("admin:projects_project_changelist")
+    assert not Project.objects.filter(name="X").exists()
+
+
 def test_create_assigns_owner_and_syncs(client, monkeypatch):
     owner = make_user()
     client.force_login(owner)
@@ -310,6 +332,35 @@ def test_create_rejects_duplicate_name_for_owner(client):
     assert Project.objects.filter(user=owner, name="Payments").count() == 1
 
 
+def test_create_rejects_duplicate_source_for_owner(client):
+    owner = make_user()
+    make_project(user=owner, name="Payments")
+    client.force_login(owner)
+
+    response = client.post(
+        reverse("projects:create"),
+        {
+            "name": "Payments mirror",
+            "repo_url": "https://git.example.com/payments.git",
+            "branch": "main",
+            "docs_folder": "docs",
+            "update_interval_minutes": 480,
+            "enabled": "on",
+        },
+    )
+
+    assert response.status_code == 400
+    assert Project.objects.filter(user=owner).count() == 1
+
+
+def test_two_users_may_track_the_same_repository():
+    first = make_project(user=make_user("a"), name="Payments")
+    second = make_project(user=make_user("b"), name="Payments")
+
+    assert first.repo_url == second.repo_url
+    assert first.slug != second.slug
+
+
 def test_delete_removes_own_project(client):
     owner = make_user()
     project = make_project(user=owner)
@@ -331,6 +382,18 @@ def test_delete_forbidden_for_other_user(client):
     assert Project.objects.filter(pk=project.pk).exists()
 
 
+def test_delete_redirects_superuser_to_admin(client):
+    project = make_project(user=make_user("owner"), name="Visible")
+    admin = make_user("admin", is_superuser=True)
+    client.force_login(admin)
+
+    response = client.post(reverse("projects:delete", args=[project.slug]))
+
+    assert response.status_code == 302
+    assert response.url == reverse("admin:projects_project_changelist")
+    assert Project.objects.filter(pk=project.pk).exists()
+
+
 # --- refresh ------------------------------------------------------------------
 
 
@@ -346,6 +409,26 @@ def test_refresh_button_shown_to_owner(client):
     client.force_login(owner)
 
     assert b"Refresh now" in client.get(project.get_absolute_url()).content
+
+
+def test_superuser_does_not_get_in_app_refresh(client):
+    project = make_project(user=make_user("owner"), name="Visible")
+    admin = make_user("admin", is_superuser=True)
+    client.force_login(admin)
+
+    assert b"Refresh now" not in client.get(project.get_absolute_url()).content
+
+
+def test_refresh_redirects_superuser_to_admin(client, monkeypatch):
+    project = make_project(user=make_user("owner"), name="Visible")
+    admin = make_user("admin", is_superuser=True)
+    client.force_login(admin)
+    monkeypatch.setattr(views, "sync_project", lambda *a, **k: pytest.fail("must not sync"))
+
+    response = client.post(reverse("projects:refresh", args=[project.slug]))
+
+    assert response.status_code == 302
+    assert response.url == reverse("admin:projects_project_changelist")
 
 
 def test_refresh_requires_login(client, monkeypatch):

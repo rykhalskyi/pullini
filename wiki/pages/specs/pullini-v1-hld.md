@@ -114,8 +114,9 @@ Wiki pages are **owner-private and read-only** (T15).
 ## 5. Projects
 
 A Pullini project represents a Git repository and its documentation. A project
-is **owned by one user** and private to that owner (T15); slug and name are
-unique per owner, and each owner's clone lives under a namespaced path.
+is **owned by one user** and private to that owner (T15); name and
+(repository URL + docs folder) are unique per owner, slugs are globally unique,
+and each owner's clone lives under a namespaced path.
 
 Project configuration:
 
@@ -138,12 +139,12 @@ Payments
   Repository: https://git.example.com/payments.git
   Branch: main
   Folder: /docs
-  Update: every 10 minutes
+  Update: every 8 hours
 ```
 
 Default update interval:
 
-**10 minutes**
+**480 minutes (8 hours)**
 
 An owner (or admin) can configure the interval and manage the project through
 the in-app management page.
@@ -188,7 +189,7 @@ Projects are automatically updated on the configured schedule.
 
 Default:
 
-**Every 10 minutes**
+**Every 8 hours**
 
 Admin can also trigger:
 
@@ -440,7 +441,7 @@ A failed project sync should leave the **last successfully generated content ava
 3. **One admin user.**
 4. **Projects are the primary organizational unit.**
 5. **Search is first-class.**
-6. **Automatic synchronization, default 10 minutes.**
+6. **Automatic synchronization, default 480 minutes (8 hours).**
 7. **Manual refresh is always available.**
 8. **No Git history is required.**
 9. **Simple Python monolith.**

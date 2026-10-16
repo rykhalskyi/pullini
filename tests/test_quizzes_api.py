@@ -30,10 +30,16 @@ def post_json(client, url, payload, **headers):
     return client.post(url, data=json.dumps(payload), content_type="application/json", **headers)
 
 
-def make_project(name: str = "Payments", *, enabled: bool = True, user=None) -> Project:
+def make_project(
+    name: str = "Payments",
+    *,
+    enabled: bool = True,
+    user=None,
+    repo_url: str = "https://git.example.com/payments.git",
+) -> Project:
     return Project.objects.create(
         name=name,
-        repo_url="https://git.example.com/payments.git",
+        repo_url=repo_url,
         enabled=enabled,
         user=user,
     )
@@ -348,8 +354,8 @@ def test_disallowed_methods_return_405(client):
 def test_pages_list_and_filter(client):
     user = make_user()
     headers = bearer(user)
-    payments = make_project("Payments", user=user)
-    billing = make_project("Billing", user=user)
+    payments = make_project("Payments", user=user, repo_url="https://git.example.com/payments.git")
+    billing = make_project("Billing", user=user, repo_url="https://git.example.com/billing.git")
     make_page(payments, path="guide/setup.md", title="Setup")
     make_page(payments, path="index.md", title="Home")
     make_page(billing, path="intro.md", title="Intro")

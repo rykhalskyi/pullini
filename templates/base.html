@@ -159,11 +159,13 @@
                 >Settings</a
               >
               {% endif %}
+              {% if not user.is_superuser %}
               <a
                 href="{% url 'projects:manage' %}"
                 class="block px-4 py-2 text-sm text-navy/80 transition-colors hover:bg-soft"
                 >Manage projects</a
               >
+              {% endif %}
               <a
                 href="{% url 'accounts:tokens' %}"
                 class="block px-4 py-2 text-sm text-navy/80 transition-colors hover:bg-soft"

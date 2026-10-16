@@ -125,3 +125,12 @@ isolation, superuser oversight, per-user slugs, management and cascade cleanup.
 
 Open item resolved: no relocation command — old ownerless clones are left in
 place and re-cloned under the new namespaced path on next sync.
+
+Follow-up (D-51/D-52): superusers browse all owners' projects but project URLs
+are slug-only, so per-owner slugs collided and `/projects/<slug>/` raised
+`MultipleObjectsReturned`. Slugs are now **globally unique** again (`0007`
+de-dupes existing collisions, `0008` restores the unique index); only `name` and
+`(repo_url, docs_folder)` stay unique per owner. The in-app manage/create/
+delete/refresh surface is **owner-only** — superusers are redirected to the
+Django admin, which remains their management surface. `is_owner` replaces
+`can_manage` for in-app actions.

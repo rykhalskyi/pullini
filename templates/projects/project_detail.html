@@ -19,7 +19,7 @@
   {% endif %}
 </div>
 
-{% if can_manage %}
+{% if is_owner %}
 <div class="mt-6 flex items-center gap-3">
   <form method="post" action="{% url 'projects:refresh' project.slug %}">
     {% csrf_token %}

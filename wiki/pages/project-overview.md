@@ -27,7 +27,7 @@ Single Python monolith (no microservices in V1). Modules: UI/UX, authentication,
 ## Key concepts
 
 - **Project** — a user-owned Git repo + branch + docs folder + update interval; name, slug and on-disk clone are scoped per owner.
-- **Sync** — scheduled (default 10 min) or manual pull, then page regen + index update.
+- **Sync** — scheduled (default 480 min / 8 h) or manual pull, then page regen + index update.
 - **Read-only** — owners (and admins) manage projects via the in-app page and manual refresh, but cannot edit wiki content; a project and its pages are visible only to their owner and admins. Non-staff users log in for per-user state such as favorites.
 - **Search** — first-class, scoped to current project or the caller's visible projects.
 

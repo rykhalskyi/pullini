@@ -20,7 +20,7 @@ from django.utils.text import slugify
 _SCP_LIKE_GIT_URL = re.compile(r"^[\w.-]+@[\w.-]+:[\w./-]+$")
 _ALLOWED_SCHEMES = ("http://", "https://", "ssh://", "git://", "file://")
 
-DEFAULT_UPDATE_INTERVAL_MINUTES = 10
+DEFAULT_UPDATE_INTERVAL_MINUTES = 480
 
 # Slugs that would shadow the management URLs under /projects/ (T15).
 RESERVED_SLUGS = frozenset({"manage", "create"})
@@ -45,7 +45,7 @@ class Project(models.Model):
     )
 
     name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, blank=True)
+    slug = models.SlugField(max_length=200, unique=True, blank=True)
     description = models.TextField(blank=True)
 
     repo_url = models.CharField(max_length=500, validators=[validate_git_url])
@@ -69,12 +69,12 @@ class Project(models.Model):
         ordering = ["name"]
         constraints = [
             models.UniqueConstraint(
-                fields=["user", "slug"],
-                name="unique_project_slug_per_user",
-            ),
-            models.UniqueConstraint(
                 fields=["user", "name"],
                 name="unique_project_name_per_user",
+            ),
+            models.UniqueConstraint(
+                fields=["user", "repo_url", "docs_folder"],
+                name="unique_project_source_per_user",
             ),
         ]
         indexes = [models.Index(fields=["user", "name"])]
@@ -100,7 +100,7 @@ class Project(models.Model):
             base = f"{base}-project"
         slug = base
         suffix = 2
-        existing = Project.objects.filter(user=self.user).exclude(pk=self.pk)
+        existing = Project.objects.exclude(pk=self.pk)
         while existing.filter(slug=slug).exists():
             slug = f"{base}-{suffix}"
             suffix += 1

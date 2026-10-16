@@ -125,7 +125,7 @@ def test_force_bypasses_interval(project, remote_repo):
 def test_due_after_interval(project):
     state = sync_project(project, force=True)
 
-    state.last_attempt_at = timezone.now() - timedelta(minutes=11)
+    state.last_attempt_at = timezone.now() - timedelta(minutes=481)
     state.save()
 
     assert is_due(project, state) is True

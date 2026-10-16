@@ -1,8 +1,8 @@
 """Project views (T15, HLD §4, §11).
 
-Public surfaces are owner-private: a user only ever sees their own projects
-(superusers see all). Non-admin owners manage their projects through the
-in-app page rather than the Django admin.
+Browsing is owner-private: a user only ever sees their own projects (superusers
+can view all for oversight). Owners manage their projects through the in-app
+page; superusers manage projects exclusively through the Django admin.
 """
 
 from __future__ import annotations
@@ -16,12 +16,19 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from pullini.projects.access import can_manage, visible_projects
+from pullini.projects.access import is_owner, visible_projects
 from pullini.projects.forms import ProjectForm
 from pullini.projects.models import ProjectSyncState, SyncStatus
 from pullini.projects.sync import sync_project
 from pullini.qanda.services import qanda_for_project
 from pullini.quizzes.services import quizzes_for_project
+
+ADMIN_CHANGELIST = "admin:projects_project_changelist"
+
+
+def _admin_redirect() -> HttpResponse:
+    """Superusers manage projects in the Django admin, not in-app (T15)."""
+    return redirect(reverse(ADMIN_CHANGELIST))
 
 
 def project_list(request: HttpRequest) -> HttpResponse:
@@ -44,7 +51,7 @@ def project_detail(request: HttpRequest, slug: str) -> HttpResponse:
             "page_count": project.pages.count(),
             "quizzes": quizzes_for_project(request.user, project),
             "qanda": qanda_for_project(request.user, project),
-            "can_manage": can_manage(request.user, project),
+            "is_owner": is_owner(request.user, project),
         },
     )
 
@@ -52,6 +59,8 @@ def project_detail(request: HttpRequest, slug: str) -> HttpResponse:
 @login_required
 def project_manage(request: HttpRequest) -> HttpResponse:
     """Owner management page: list projects and offer the add form (T15)."""
+    if request.user.is_superuser:
+        return _admin_redirect()
     return render(
         request,
         "projects/manage.html",
@@ -66,6 +75,9 @@ def project_manage(request: HttpRequest) -> HttpResponse:
 @require_POST
 def project_create(request: HttpRequest) -> HttpResponse:
     """Create a project owned by the caller, then immediately sync it (T15)."""
+    if request.user.is_superuser:
+        return _admin_redirect()
+
     form = ProjectForm(request.POST)
     project = None
     if form.is_valid():
@@ -102,8 +114,10 @@ def project_create(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_POST
 def project_delete(request: HttpRequest, slug: str) -> HttpResponse:
+    if request.user.is_superuser:
+        return _admin_redirect()
     project = get_object_or_404(visible_projects(request.user), slug=slug)
-    if not can_manage(request.user, project):
+    if not is_owner(request.user, project):
         raise PermissionDenied
     name = project.name
     project.delete()
@@ -114,9 +128,11 @@ def project_delete(request: HttpRequest, slug: str) -> HttpResponse:
 @require_POST
 @login_required
 def project_refresh(request: HttpRequest, slug: str) -> HttpResponse:
-    """Trigger an immediate synchronization (owner or superuser, HLD §4)."""
+    """Trigger an immediate synchronization (owner only, HLD §4)."""
+    if request.user.is_superuser:
+        return _admin_redirect()
     project = get_object_or_404(visible_projects(request.user), slug=slug)
-    if not can_manage(request.user, project):
+    if not is_owner(request.user, project):
         raise PermissionDenied
     state = sync_project(project, force=True)
 
