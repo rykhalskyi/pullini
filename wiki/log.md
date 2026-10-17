@@ -40,3 +40,4 @@
 ## [2026-10-16] ticket | T15 user-owned private projects
 ## [2026-10-16] update | Default update interval 480 min
 ## [2026-10-16] update | Fix superuser MultipleObjectsReturned on duplicate slugs; admin manages in Django admin
+## [2026-10-17] ticket | T16 — invite-link user onboarding
