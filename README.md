@@ -41,8 +41,21 @@ uv run python manage.py createsuperuser
 uv run python manage.py runserver
 ```
 
-Then open http://localhost:8000 — status is at `/healthz`, and projects are added
-in the Django admin at `/admin/`.
+Then open http://localhost:8000 — status is at `/healthz`, and projects and users
+are managed in the Django admin at `/admin/`.
+
+## User accounts
+
+Accounts are created by the administrator in the Django admin. The add form asks
+only for a username: Pullini creates the user without a password and generates a
+**one-time setup link**. Copy that link from the user page and send it to the new
+user; it expires after one day (configurable with `PASSWORD_RESET_TIMEOUT`) and
+lets them choose their own password.
+
+To reset a password later, open the user in the admin and click **Reset password
+& generate link**. This removes the current password, signs out existing
+sessions on their next request, invalidates any previous setup link, and shows a
+fresh one.
 
 ## Syncing and generating pages
 

@@ -1,0 +1,89 @@
+{% extends "admin/change_form.html" %}
+
+{% block form_top %}
+  {% if add and not is_popup %}
+    <p>
+      After saving, Pullini generates a one-time password setup link. Share it with the
+      new user so they can choose their own password.
+    </p>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}
+
+{% block object-tools-items %}
+  {% if change and original %}
+  <li>
+    <form
+      method="post"
+      action="{% url 'admin:auth_user_setup_link' original.pk %}"
+      id="reset-password-form"
+    >
+      {% csrf_token %}
+      <button type="submit" class="button">
+        {% if original.has_usable_password %}Reset password &amp; generate link{% else %}Generate setup link{% endif %}
+      </button>
+    </form>
+  </li>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}
+
+{% block after_field_sets %}
+  {{ block.super }}
+  {% if password_setup_url %}
+  <fieldset class="module aligned">
+    <h2>Password setup link</h2>
+    <div class="form-row">
+      <div>
+        <p>
+          Copy this link now — it will not be shown again. It expires after
+          {{ password_setup_expiry }} and can be used once.
+        </p>
+        <input
+          type="text"
+          id="password-setup-url"
+          value="{{ password_setup_url }}"
+          readonly
+          style="width: 100%"
+        />
+        <p>
+          <button type="button" class="button" id="copy-password-setup-url">
+            Copy link
+          </button>
+        </p>
+      </div>
+    </div>
+  </fieldset>
+  {% endif %}
+{% endblock %}
+
+{% block admin_change_form_document_ready %}
+  {{ block.super }}
+  <script>
+    (function () {
+      var resetForm = document.getElementById("reset-password-form");
+      if (resetForm) {
+        resetForm.addEventListener("submit", function (event) {
+          var message =
+            "This removes the current password, signs the user out, and invalidates existing setup links. Continue?";
+          if (!window.confirm(message)) {
+            event.preventDefault();
+          }
+        });
+      }
+
+      var button = document.getElementById("copy-password-setup-url");
+      var field = document.getElementById("password-setup-url");
+      if (!button || !field) return;
+      button.addEventListener("click", function () {
+        field.select();
+        navigator.clipboard.writeText(field.value).then(function () {
+          button.textContent = "Copied";
+          setTimeout(function () {
+            button.textContent = "Copy link";
+          }, 1500);
+        });
+      });
+    })();
+  </script>
+{% endblock %}
