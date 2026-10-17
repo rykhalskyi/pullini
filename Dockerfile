@@ -52,6 +52,13 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
 COPY . .
+
+# The build context may come from a Windows checkout where Git rewrote the
+# shell scripts to CRLF (or where the executable bit was lost). Normalize them
+# so /bin/sh can run the entrypoint and scheduler regardless of the host OS.
+RUN sed -i 's/\r$//' docker/entrypoint.sh docker/scheduler.sh \
+    && chmod +x docker/entrypoint.sh docker/scheduler.sh
+
 COPY --from=assets /app/static/css/app.css ./static/css/app.css
 COPY --from=assets /app/static/js/vendor ./static/js/vendor
 RUN uv sync --frozen --no-dev
