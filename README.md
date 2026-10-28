@@ -91,6 +91,12 @@ python -c "import secrets; print(secrets.token_urlsafe(50))"   # paste into .env
 docker compose up --build
 ```
 
+> **Windows checkouts:** the container runs `docker/entrypoint.sh` with `/bin/sh`,
+> so those scripts must keep LF line endings. [`.gitattributes`](.gitattributes)
+> enforces this, but an older checkout keeps CRLF until it is refreshed — run
+> `git checkout -- docker/entrypoint.sh docker/scheduler.sh` (or re-clone). The
+> image also normalizes them at build time as a safety net.
+
 SQLite and data live in the `pullini-data` volume (`/data`). Change the published
 host port with `PULLINI_PORT` (default `8000`) if it is already in use:
 

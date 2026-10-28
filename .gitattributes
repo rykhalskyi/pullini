@@ -1,0 +1,31 @@
+# Normalize line endings on checkout. This project targets Linux containers:
+# a Windows checkout with core.autocrlf=true would otherwise turn the shell
+# entrypoint into CRLF, and /bin/sh then fails with "bad interpreter".
+* text=auto eol=lf
+
+# Container/build files must always be LF.
+*.sh text eol=lf
+Dockerfile text eol=lf
+Dockerfile.* text eol=lf
+*.dockerfile text eol=lf
+docker-compose*.yml text eol=lf
+docker-compose*.yaml text eol=lf
+
+# Windows-native scripts still want CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.pdf binary
+*.zip binary
