@@ -158,9 +158,56 @@ html {
   justify-content: center;
   margin: 1.5rem 0;
 }
-.wiki-content .mermaid svg {
-  max-width: 100%;
-  height: auto;
+.wiki-content .mermaid-zoom {
+  margin: 1.5rem 0;
+}
+.wiki-content .mermaid-zoom-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  margin-bottom: 0.375rem;
+}
+.wiki-content .mermaid-zoom-button {
+  min-width: 2rem;
+  border: 1px solid var(--color-line);
+  border-radius: 0.375rem;
+  background: var(--color-panel);
+  color: var(--color-navy);
+  padding: 0.3rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.wiki-content .mermaid-zoom-button:hover,
+.wiki-content .mermaid-zoom-button:focus {
+  background: var(--color-soft);
+}
+.wiki-content .mermaid-zoom-viewport {
+  position: relative;
+  overflow: hidden;
+  max-height: 70vh;
+  border: 1px solid var(--color-line);
+  border-radius: 0.5rem;
+  background: var(--color-panel);
+  cursor: grab;
+  touch-action: none;
+}
+.wiki-content .mermaid-zoom-viewport.is-dragging {
+  cursor: grabbing;
+}
+.wiki-content .mermaid-zoom-canvas {
+  width: max-content;
+}
+.wiki-content .mermaid-zoom .mermaid {
+  display: block;
+  width: max-content;
+  margin: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.wiki-content .mermaid-zoom .mermaid svg {
+  max-width: none;
+  user-select: none;
 }
 .wiki-content table {
   border-collapse: collapse;
