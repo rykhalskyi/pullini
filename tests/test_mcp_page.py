@@ -18,7 +18,8 @@ def test_mcp_page_renders_instructions(client):
     assert "pullini://skill" in body
     assert "/api/skill/" in body
     assert "PyPI" in body
-    assert "in progress" in body
+    assert "uvx" in body
+    assert "in progress" not in body
 
 
 def test_home_menu_links_to_mcp(client):

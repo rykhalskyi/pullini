@@ -19,6 +19,7 @@ urlpatterns = [
     path("projects/", include("pullini.wiki.urls")),
     path("search/", include("pullini.search.urls")),
     path("favorites/", include("pullini.favorites.urls")),
+    path("accounts/", include("pullini.accounts.public_urls")),
     path("settings/", include("pullini.accounts.urls")),
     path("api/", include("pullini.api.urls")),
     path("", include("pullini.artifacts.urls")),

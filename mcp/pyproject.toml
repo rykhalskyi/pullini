@@ -1,6 +1,6 @@
 [project]
 name = "pullini-mcp"
-version = "0.10.0"
+version = "1.0.0"
 description = "Local stdio MCP connector for Pullini artifacts (E6, T6)."
 readme = "README.md"
 requires-python = ">=3.10"
